@@ -116,7 +116,6 @@ void do_read(std::string path)
                 }
             }
             file2read.close();
-            return;
         }
     }
     return;
