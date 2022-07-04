@@ -48,17 +48,16 @@ std::string fsize_f(std::streamsize number)
 void do_read(std::string path)
 {
     std::ifstream file2read;
-    int i;
-    unsigned __int64 number_of_files = 0, current_file = 0;
     std::chrono::steady_clock::time_point start;
-    std::streamsize file_size = 0;
-    int speed = 0;
-    bool loop = true;
-    std::streamsize block_size = (std::streamsize)BLOCK_SIZE;
-    std::string speed_s, loop_s, filenum_s;
-    char* buffer_d = new char[(size_t)BLOCK_SIZE];
-    size_t fieldWidth[4] = { 40, 15, 15, 20 };
     std::chrono::duration<double> elapsed_seconds;
+    std::streamsize file_size = 0, block_size = (std::streamsize)BLOCK_SIZE;
+    std::string speed_s, loop_s, filenum_s;
+    size_t fieldWidth[4] = { 40, 15, 15, 20 };
+    char* buffer_d = new char[(size_t)BLOCK_SIZE];
+    unsigned __int64 number_of_files = 0, current_file = 0;
+    bool loop = true;
+    int i, speed;
+
     for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
     {
         number_of_files++;
