@@ -9,6 +9,16 @@
 #define BLOCK_SIZE (pow(2, 25))
 #define TARGET_SPEED 350
 
+std::string seconds_f(int num_seconds)
+{
+    std::string ret_string;
+
+    ret_string = std::to_string((int)(num_seconds / 60)) + "m";
+    ret_string = ret_string + std::to_string((num_seconds - ((int)(num_seconds / 60)) * 60)) + "s";
+
+    return ret_string;
+}
+
 std::string fsize_f(std::streamsize number)
 {
     std::stringstream number_fs;
@@ -131,12 +141,16 @@ bool input_wait_for(int timeout)
 int main()
 {
     std::string path2read = "D:\\SquareEnix";
+    std::chrono::steady_clock::time_point start;
+    std::chrono::duration<double> elapsed_seconds;
 
     while (true)
     {
         std::cout << "Reading " << path2read << ", block size " << fsize_f((std::streamsize)BLOCK_SIZE) << ", goal speed " << TARGET_SPEED << "\n";
+        start = std::chrono::high_resolution_clock::now();
+        elapsed_seconds = std::chrono::high_resolution_clock::now() - start;
         do_read(path2read);
-        std::cout << "Press any key to NOT continue.\n";
+        std::cout << "Elapsed: " << seconds_f((int)elapsed_seconds.count()) << ". Press any key to NOT continue.\n";
         if (input_wait_for(5))
         {
             return 1;
