@@ -9,6 +9,20 @@
 #define BLOCK_SIZE (pow(2, 25))
 #define TARGET_SPEED 350
 
+void clear_line()
+{
+    char to_print[3] = { '\b', ' ', '\b' };
+
+    for (int j = 0; j < 3; j++)
+    {
+        for (int i = 0; i < 95; i++)
+        {
+            std::cout << to_print[j];
+        }
+    }
+    return;
+}
+
 std::string seconds_f(int num_seconds)
 {
     std::string ret_string;
@@ -55,24 +69,26 @@ std::string fsize_f(std::streamsize number)
     }
 }
 
-void do_read(std::string path)
+unsigned __int64 do_read(std::string path)
 {
     std::ifstream file2read;
-    std::chrono::steady_clock::time_point start;
-    std::chrono::duration<double> elapsed_seconds;
+    std::chrono::steady_clock::time_point start, start_out;
+    std::chrono::duration<double> elapsed_seconds, elapsed_out;
     std::streamsize file_size = 0, block_size = (std::streamsize)BLOCK_SIZE;
-    std::string speed_s, loop_s, filenum_s;
-    size_t fieldWidth[4] = { 40, 15, 15, 20 };
+    std::string bandw_s, speed_s, filenum_s, duration_s;
+    size_t fieldWidth[5] = { 37, 25, 13, 8, 7 };
     char* buffer_d = new char[(size_t)BLOCK_SIZE];
-    unsigned __int64 number_of_files = 0, current_file = 0;
+    unsigned __int64 number_of_files = 0, current_file = 0, total_size = 0, done_size = 0;
     bool loop = true;
     int i, speed;
 
     for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
     {
         number_of_files++;
+        total_size += entry.file_size();
     }
     number_of_files++;
+    start_out = std::chrono::high_resolution_clock::now();
     for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
     {
         current_file++;
@@ -88,24 +104,36 @@ void do_read(std::string path)
                 file2read.clear();
             }
             else while (loop == true)
-            {
-                
-                std::cout << std::setw(fieldWidth[0]) << std::left << entry.path().filename().string();
-                std::cout << std::setw(fieldWidth[1]) << std::right << fsize_f(file_size);
+            {                
+                bandw_s = fsize_f(file_size) + "/" + fsize_f(done_size) + "/" + fsize_f(total_size);
                 start = std::chrono::high_resolution_clock::now();
-                for (std::streamsize i = 0; i < file_size; i += block_size)
+                for (std::streamsize bytes = 0; bytes < file_size; bytes += block_size)
                 {
                     file2read.read(buffer_d, block_size);
                 }
                 elapsed_seconds = std::chrono::high_resolution_clock::now() - start;
+                elapsed_out = std::chrono::high_resolution_clock::now() - start_out;
                 speed = (int)(file_size / (pow(2, 20) * elapsed_seconds.count()));
                 speed_s = std::to_string(speed) + "MB/sec";
-                std::cout << std::setw(fieldWidth[1]) << std::right << speed_s;
-                loop_s = "Try [" + std::to_string(++i) + "/5]";
-                std::cout << std::setw(fieldWidth[2]) << std::right << loop_s;
-                filenum_s = "File [" + std::to_string(current_file) + "/" + std::to_string(number_of_files) + "]";
-                std::cout << std::setw(fieldWidth[3]) << std::right << filenum_s << "\n";
-                if ((i >= 5) || (speed >= TARGET_SPEED))
+                filenum_s = std::to_string(current_file) + "/" + std::to_string(number_of_files);
+                duration_s = seconds_f((int)elapsed_out.count());
+                clear_line();
+                std::cout << "[";
+                std::cout << std::setw(fieldWidth[0]) << std::left << entry.path().filename().string();
+                std::cout << std::setw(fieldWidth[1]) << std::right << bandw_s;
+                std::cout << std::setw(fieldWidth[2]) << std::right << speed_s;
+                std::cout << std::setw(fieldWidth[3]) << std::right << filenum_s;
+                switch (i)
+                {
+                    case 0: std::cout << " "; break;
+                    case 1: std::cout << "-"; break;
+                    case 2: std::cout << "="; break;
+                    case 3: std::cout << "*"; break;
+                    case 4: std::cout << "#"; break;
+                }
+                std::cout << std::setw(fieldWidth[4]) << std::right << duration_s;
+                std::cout << "]";
+                if ((++i >= 5) || (speed >= TARGET_SPEED))
                 {
                     break;
                 }
@@ -116,9 +144,12 @@ void do_read(std::string path)
                 }
             }
             file2read.close();
+            done_size += file_size;
         }
     }
-    return;
+    std::cout << "\n";
+
+    return total_size;
 }
 
 bool input_wait_for(int timeout)
@@ -138,39 +169,40 @@ bool input_wait_for(int timeout)
     }
 }
 
-int main()
+int main(int argc, char** argv)
 {
-    std::string path2read = "D:\\SquareEnix";
+    std::string path2read, speed_s;
     std::chrono::steady_clock::time_point start;
-    std::chrono::duration<double> elapsed_seconds, elapsed_l, elapsed_f;
-    bool first_run = true, second_run=false;
+    std::chrono::duration<double> elapsed_seconds;
+    unsigned __int64 transferred;
+
+    if (argc != 2)
+    {
+        std::cout << "Please supply a single argument - the directory to be scanned.\n";
+        std::cout << "Example:\n\n";
+        std::cout << "filelist.exe \"C:\\Directory\"\n";
+        return 1;
+    }
+    else
+    {
+        path2read = argv[1];
+
+        if (!std::filesystem::is_directory(path2read))
+        {
+            std::cout << "Argument passed \"" << path2read << "\" is not a valid directory.\n";
+            return 2;
+        }
+    }
 
     while (true)
     {
-        std::cout << "Reading " << path2read << ", block size " << fsize_f((std::streamsize)BLOCK_SIZE) << ", goal speed " << TARGET_SPEED << "\n";
+        clear_line();
         start = std::chrono::high_resolution_clock::now();
+        transferred = do_read(path2read);
         elapsed_seconds = std::chrono::high_resolution_clock::now() - start;
-        do_read(path2read);
-        std::cout << "Elapsed: " << seconds_f((int)elapsed_seconds.count());
-        if (!first_run && !second_run)
-        {
-            std::cout << "; " << seconds_f((int)elapsed_l.count()) << " last run; " << seconds_f((int)elapsed_f.count()) << " first run\n";
-            elapsed_l = elapsed_seconds;
-        }
-        if (second_run)
-        {
-            std::cout << "; " << seconds_f((int)elapsed_f.count()) << " last run.\n";
-            elapsed_l = elapsed_seconds;
-            second_run = false;
-        }
-        if (first_run)
-        {
-            std::cout << ".\n";
-            elapsed_f = elapsed_seconds;
-            first_run = false;
-            second_run = true;
-        }
-        std::cout << "Press any key to NOT continue.\n";
+        speed_s = std::to_string((int)(transferred / (pow(2, 20) * elapsed_seconds.count()))) + "MB/sec";
+        std::cout << "From " << path2read << " transferred " << fsize_f(transferred) << " in " << seconds_f((int)elapsed_seconds.count()) << " at " << speed_s;
+        std::cout << ". Press any key to NOT continue.";
         if (input_wait_for(5))
         {
             return 1;
