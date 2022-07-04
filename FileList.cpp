@@ -129,12 +129,12 @@ unsigned __int64 do_read(std::string path)
     start_out = std::chrono::high_resolution_clock::now();
     for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
     {
-        current_file++;
         speed = 0;
         i = 0;
         loop = true;
         if (!entry.is_directory())
         {
+            current_file++;
             file_size = entry.file_size();
             file2read.open(entry.path().string(), std::ios_base::in | std::ios::binary);
             if (!file2read.is_open())
