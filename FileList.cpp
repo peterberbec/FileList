@@ -116,6 +116,7 @@ void do_read(std::string path)
                 }
             }
             file2read.close();
+            return;
         }
     }
     return;
@@ -142,7 +143,8 @@ int main()
 {
     std::string path2read = "D:\\SquareEnix";
     std::chrono::steady_clock::time_point start;
-    std::chrono::duration<double> elapsed_seconds;
+    std::chrono::duration<double> elapsed_seconds, elapsed_l, elapsed_f;
+    bool first_run = true, second_run=false;
 
     while (true)
     {
@@ -150,7 +152,26 @@ int main()
         start = std::chrono::high_resolution_clock::now();
         elapsed_seconds = std::chrono::high_resolution_clock::now() - start;
         do_read(path2read);
-        std::cout << "Elapsed: " << seconds_f((int)elapsed_seconds.count()) << ". Press any key to NOT continue.\n";
+        std::cout << "Elapsed: " << seconds_f((int)elapsed_seconds.count());
+        if (!first_run && !second_run)
+        {
+            std::cout << "; " << seconds_f((int)elapsed_l.count()) << " last run; " << seconds_f((int)elapsed_f.count()) << " first run\n";
+            elapsed_l = elapsed_seconds;
+        }
+        if (second_run)
+        {
+            std::cout << "; " << seconds_f((int)elapsed_f.count()) << " last run.\n";
+            elapsed_l = elapsed_seconds;
+            second_run = false;
+        }
+        if (first_run)
+        {
+            std::cout << ".\n";
+            elapsed_f = elapsed_seconds;
+            first_run = false;
+            second_run = true;
+        }
+        std::cout << "Press any key to NOT continue.\n";
         if (input_wait_for(5))
         {
             return 1;
