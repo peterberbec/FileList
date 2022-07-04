@@ -8,8 +8,7 @@
 #include <conio.h>
 #define BLOCK_SIZE (pow(2, 25))
 #define TARGET_SPEED 350
-
-size_t fieldWidth[5] = { 36, 20, 12, 14, 7 }; /* filename, size, speed, filenumber, time*/
+#define FIELD_WIDTH {36,20,12,14,7} /* filename, size, speed, filenumber, time*/
 
 std::string truncate(std::string str, size_t width, bool dots=false)
 {
@@ -30,6 +29,7 @@ std::string truncate(std::string str, size_t width, bool dots=false)
 void clear_line(int number = 0)
 {
     char to_print[3] = { '\b', ' ', '\b' };
+    size_t fieldWidth[5] = FIELD_WIDTH;
     size_t width_f = fieldWidth[0] + fieldWidth[1] + fieldWidth[2] + fieldWidth[3] + fieldWidth[4] + 3;
     if (number != 0)
     {
@@ -50,22 +50,29 @@ std::string seconds_f(int num_seconds)
 {
     std::string ret_string = "";
 
-    if (num_seconds > 86400)
+    if (num_seconds < 600)
     {
-        ret_string = ret_string + std::to_string((int)(num_seconds / 86400)) + "d";
-        num_seconds -= (int)((num_seconds / 86400) * 86400);
+        std::stringstream ret;
+        ret << std::fixed << std::setprecision(2) << (num_seconds/10.0);
+        ret_string = ret.str() + "s";
+        return ret_string;
     }
-    if (num_seconds > 3600)
+    if (num_seconds > 864000)
     {
-        ret_string = ret_string + std::to_string((int)(num_seconds / 3600)) + "h";
+        ret_string = std::to_string((int)(num_seconds / 864000)) + "d";
+        num_seconds -= (int)((num_seconds / 86400) * 864000);
+    }
+    if (num_seconds > 36000)
+    {
+        ret_string = ret_string + std::to_string((int)(num_seconds / 36000)) + "h";
         num_seconds -= (int)((num_seconds / 3600) * 3600);
     }
-    if (num_seconds > 60)
+    if (num_seconds > 600)
     {
-        ret_string = ret_string + std::to_string((int)(num_seconds / 60)) + "m";
+        ret_string = ret_string + std::to_string((int)(num_seconds / 600)) + "m";
         num_seconds -= (int)((num_seconds / 60) * 60);
     }
-    ret_string = ret_string + std::to_string(num_seconds) + "s";
+    ret_string = ret_string + std::to_string((int)(num_seconds/10)) + "s";
 
     return ret_string;
 }
@@ -110,11 +117,12 @@ unsigned __int64 do_read(std::string path)
 {
     std::ifstream file2read;
     std::chrono::steady_clock::time_point start, start_out;
-    std::chrono::duration<double> elapsed_seconds, elapsed_out;
+    std::chrono::duration<double, std::ratio<1, 10>> elapsed_seconds, elapsed_out;
     std::streamsize file_size = 0, block_size = (std::streamsize)BLOCK_SIZE;
     std::string bandw_s, speed_s, filenum_s, duration_s;
     char* buffer_d = new char[(size_t)BLOCK_SIZE];
     unsigned __int64 number_of_files = 0, current_file = 0, total_size = 0, done_size = 0;
+    size_t fieldWidth[5] = FIELD_WIDTH;
     bool loop = true;
     int i, speed;
 
@@ -126,7 +134,7 @@ unsigned __int64 do_read(std::string path)
             total_size += entry.file_size();
         }
     }
-    start_out = std::chrono::high_resolution_clock::now();
+    start_out = std::chrono::steady_clock::now();
     for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
     {
         speed = 0;
@@ -144,14 +152,14 @@ unsigned __int64 do_read(std::string path)
             else while (loop == true)
             {                
                 bandw_s = fsize_f(file_size) + "/" + fsize_f(done_size) + "/" + fsize_f(total_size);
-                start = std::chrono::high_resolution_clock::now();
+                start = std::chrono::steady_clock::now();
                 for (std::streamsize bytes = 0; bytes < file_size; bytes += block_size)
                 {
                     file2read.read(buffer_d, block_size);
                 }
-                elapsed_seconds = std::chrono::high_resolution_clock::now() - start;
-                elapsed_out = std::chrono::high_resolution_clock::now() - start_out;
-                speed = (int)(file_size / (pow(2, 20) * elapsed_seconds.count()));
+                elapsed_seconds = std::chrono::steady_clock::now() - start;
+                elapsed_out = std::chrono::steady_clock::now() - start_out;
+                speed = (int)((file_size * 10) / (pow(2, 20) * elapsed_seconds.count()));
                 speed_s = std::to_string(speed) + "MB/sec";
                 filenum_s = std::to_string(current_file) + "/" + std::to_string(number_of_files);
                 duration_s = seconds_f((int)elapsed_out.count());
@@ -211,7 +219,7 @@ int main(int argc, char** argv)
 {
     std::string path2read, speed_s;
     std::chrono::steady_clock::time_point start;
-    std::chrono::duration<double> elapsed_seconds;
+    std::chrono::duration<double, std::ratio<1, 10>> elapsed_seconds;
     unsigned __int64 transferred;
 
     if (argc != 2)
@@ -235,11 +243,11 @@ int main(int argc, char** argv)
     while (true)
     {
         clear_line();
-        start = std::chrono::high_resolution_clock::now();
+        start = std::chrono::steady_clock::now();
         transferred = do_read(path2read);
 
-        elapsed_seconds = std::chrono::high_resolution_clock::now() - start;
-        speed_s = std::to_string((int)(transferred / (pow(2, 20) * elapsed_seconds.count()))) + "MB/sec";
+        elapsed_seconds = std::chrono::steady_clock::now() - start;
+        speed_s = std::to_string((int)((transferred * 10) / (pow(2, 20) * elapsed_seconds.count()))) + "MB/sec";
         std::cout << "\"" << truncate(path2read, 22, true) << "\": read " << fsize_f(transferred) << " in " << seconds_f((int)elapsed_seconds.count()) << " at " << speed_s;
         std::cout << ". Press any key to quit.";
         if (input_wait_for(5))
