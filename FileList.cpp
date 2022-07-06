@@ -43,7 +43,7 @@ void command_args()
     std::cout << "\n";
     std::cout << "Example B:\n";
     std::cout << "\n";
-    std::cout << "C:\\> filelist.exe 64 \"C:\\Directory\"\n";
+    std::cout << "C:\\> filelist.exe 64 \"D:\\Directory\\With Spaces\"\n";
     input_wait_for(15);
 }
 
