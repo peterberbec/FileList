@@ -23,12 +23,25 @@ bool input_wait_for(int);
 
 void command_args()
 {
+    std::cout << "FileList.exe\n";
+    std::cout << "\n";
+    std::cout << "Reads all file, recursively, in target directory. Loops forever, with user prompt\n";
+    std::cout << "to quit after every loop, or until read is accomplished in goal time.\n";
+    std::cout << "\n";
+    std::cout << "The purpose of this program is to load an SSD cache from a hard drive. I wrote it\n";
+    std::cout << "to load PrimoCache with FF14, as it was doing a bad job of loading. It grew from there\n";
+    std::cout << "and now can run on any directory. I've integrated it into my Windows \"Send-To\" menu.\n";
+    std::cout << "\n";
     std::cout << "One argument is required - the directory to be scanned.\n";
     std::cout << "One argument is optional - the directory goal time to quit after, in seconds.\n";
-    std::cout << "Argument order is not important.\n\n";
-    std::cout << "Example A:\n\n";
+    std::cout << "Argument order is not important.\n";
+    std::cout << "\n";
+    std::cout << "Example A:\n";
+    std::cout << "\n";
     std::cout << "C:\\> filelist.exe \"C:\\Directory\"\n";
-    std::cout << "Example B:\n\n";
+    std::cout << "\n";
+    std::cout << "Example B:\n";
+    std::cout << "\n";
     std::cout << "C:\\> filelist.exe 64 \"C:\\Directory\"\n";
     input_wait_for(15);
 }
