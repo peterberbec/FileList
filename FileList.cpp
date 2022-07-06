@@ -1,3 +1,5 @@
+#undef _DEBUG
+
 #include <iostream>
 #include <string>
 #include <filesystem>
@@ -9,6 +11,33 @@
 #define BLOCK_SIZE (pow(2, 25))
 #define TARGET_SPEED 350
 #define FIELD_WIDTH {36,20,12,14,7} /* filename, size, speed, filenumber, time*/
+
+void command_args();
+bool is_number(const std::string&);
+std::string truncate(std::string, size_t, bool);
+void clear_line(int);
+std::string seconds_f(int);
+std::string fsize_f(std::streamsize);
+unsigned __int64 do_read(std::string);
+bool input_wait_for(int);
+
+void command_args()
+{
+    std::cout << "One argument is required - the directory to be scanned.\n";
+    std::cout << "One argument is optional - the directory goal time to quit after, in seconds.\n";
+    std::cout << "Argument order is not important.\n\n";
+    std::cout << "Example A:\n\n";
+    std::cout << "C:\\> filelist.exe \"C:\\Directory\"\n";
+    std::cout << "Example B:\n\n";
+    std::cout << "C:\\> filelist.exe 64 \"C:\\Directory\"\n";
+    input_wait_for(15);
+}
+
+bool is_number(const std::string& s)
+{
+    return !s.empty() && std::find_if(s.begin(),
+        s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
+}
 
 std::string truncate(std::string str, size_t width, bool dots=false)
 {
@@ -36,9 +65,9 @@ void clear_line(int number = 0)
         width_f = size_t(number);
     }
 
-    for (int j = 0; j < 3; j++)
+    for (unsigned int j = 0; j < 3; j++)
     {
-        for (int i = 0; i < width_f; i++)
+        for (unsigned int i = 0; i < width_f; i++)
         {
             std::cout << to_print[j];
         }
@@ -217,27 +246,64 @@ bool input_wait_for(int timeout)
 
 int main(int argc, char** argv)
 {
-    std::string path2read, speed_s;
+    std::string path2read, speed_s, goal_time_s = "none";
     std::chrono::steady_clock::time_point start;
     std::chrono::duration<double, std::ratio<1, 10>> elapsed_seconds;
-    unsigned __int64 transferred;
+    unsigned __int64 transferred, goal_time = 0;
 
-    if (argc != 2)
+    if (argc == 1 || argc > 3)
     {
-        std::cout << "Please supply a single argument - the directory to be scanned.\n";
-        std::cout << "Example:\n\n";
-        std::cout << "filelist.exe \"C:\\Directory\"\n";
-        return 1;
+        command_args();
+        return 2;
     }
-    else
+
+    if (argc == 2)
     {
         path2read = argv[1];
 
         if (!std::filesystem::is_directory(path2read))
         {
-            std::cout << "Argument passed \"" << path2read << "\" is not a valid directory.\n";
+            std::cout << "Argument passed \"" << path2read << "\" is not a valid directory.\n\n";
+            command_args();
             return 2;
         }
+    }
+    if (argc == 3)
+    {
+        path2read = argv[1];
+        goal_time_s = argv[2];
+
+        if (!std::filesystem::is_directory(path2read))
+        {
+            path2read = argv[2];
+            if (!std::filesystem::is_directory(path2read))
+            {
+                std::cout << "Argument passed \"" << path2read << "\" is not a valid directory.\n\n";
+                command_args();
+                return 2;
+            }
+            goal_time_s = argv[1];
+            if (!is_number(goal_time_s))
+            {
+                std::cout << "Argument passed \"" << goal_time_s << "\" is not a valid number.\n\n";
+                command_args();
+                return 2;
+            }
+        }
+        else if (!is_number(goal_time_s))
+        {
+            std::cout << "Argument passed \"" << goal_time_s << "\" is not a valid number.\n\n";
+            command_args();
+            return 2;
+        }
+    }
+    if (goal_time_s != "none")
+    {
+        goal_time = std::stoi(goal_time_s);
+    }
+    else
+    {
+        goal_time = 604800000;
     }
 
     while (true)
@@ -249,6 +315,11 @@ int main(int argc, char** argv)
         elapsed_seconds = std::chrono::steady_clock::now() - start;
         speed_s = std::to_string((int)((transferred * 10) / (pow(2, 20) * elapsed_seconds.count()))) + "MB/sec";
         std::cout << "\"" << truncate(path2read, 22, true) << "\": read " << fsize_f(transferred) << " in " << seconds_f((int)elapsed_seconds.count()) << " at " << speed_s;
+        if ((elapsed_seconds.count()/10) < goal_time)
+        {
+            std::cout << ".\nData read in under " << goal_time_s << ". Quitting.\n";
+            return 1;
+        }
         std::cout << ". Press any key to quit.";
         if (input_wait_for(5))
         {
