@@ -1,11 +1,5 @@
 FileList.exe
 
-Designed to run in Windows 64-bit. Compiles under Visual Studio 2022. Written
-in C++, as vanilla as I can make it. Probably easily portable to Linux and I 
-may try for my Plex box at some point, just to see if it works. Console
-application because GUIs scare me. I plan on making a Win32 version at some
-point, but it currently functions for my purposes quite will.
-
 Reads the data of all files, recursively, in target directory. Loops forever,
 with a user prompt to quit after every loop, or until read is accomplished
 within a goal time. Inability to access a file is currently set to NOT stop the
@@ -33,6 +27,12 @@ C:\> filelist.exe "C:\Directory"
 Example B:
 
 C:\> filelist.exe 64 "C:\Directory"
+
+Designed to run in Windows 64-bit. Compiles under Visual Studio 2022. Written
+in C++, as vanilla as I can make it. Probably easily portable to Linux and I 
+may try for my Plex box at some point, just to see if it works. Console
+application because GUIs scare me. I plan on making a Win32 version at some
+point, but it currently functions for my purposes quite will.
 
 Final Fantasy 14 is copyright SquareEnix. No assets or interaction with the
 game are used or done by this program.
