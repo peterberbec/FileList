@@ -148,7 +148,7 @@ std::string seconds_f(unsigned __int64 num_seconds)     // format a number of se
     return ret_string;
 }
 
-std::string fsize_f(std::streamsize number)
+std::string fsize_f(std::streamsize number)     // format number of bytes to B, KB, MB, GB, TB and PB
 {
     std::stringstream number_fs;
 
@@ -184,7 +184,7 @@ std::string fsize_f(std::streamsize number)
     }
 }
 
-unsigned __int64 do_read(std::string path)
+unsigned __int64 do_read(std::string path)      // the big read function
 {
     std::ifstream file2read;
     std::chrono::steady_clock::time_point start, start_out;
@@ -269,17 +269,17 @@ unsigned __int64 do_read(std::string path)
     return total_size;
 }
 
-bool input_wait_for(unsigned __int64 timeout)
+bool input_wait_for(unsigned __int64 timeout)       // wait for user input for timeout seconds
 {
     std::time_t start = std::time(0);
 
     while(true)
     {
-        if (std::difftime(std::time(0), start) >= timeout)
+        if (std::difftime(std::time(0), start) >= timeout)      // check for timeout
         {
             return false;
         }
-        if (_kbhit()) 
+        if (_kbhit())       // check if they keyboard was touched without needing an "Enter"
         {
             return true;
         }
@@ -293,77 +293,76 @@ int main(int argc, char** argv)
     std::chrono::duration<double, std::ratio<1, 10>> elapsed_seconds;
     unsigned __int64 transferred, goal_time = 0;
 
-    if (argc == 1 || argc > 3)
+    if (argc == 1 || argc > 3)  // one or two arguments, people!
     {
         command_args();
         return 2;
     }
 
-    if (argc == 2)
+    if (argc == 2)      // got a path, hopefully
     {
         path2read = argv[1];
 
-        if (!std::filesystem::is_directory(path2read))
+        if (!std::filesystem::is_directory(path2read))      // not a path
         {
             std::cout << "Argument passed \"" << path2read << "\" is not a valid directory.\n\n";
             command_args();
             return 2;
         }
     }
-    if (argc == 3)
+    if (argc == 3)      // got a path and goal time, hopefully
     {
         path2read = argv[1];
         goal_time_s = argv[2];
 
-        if (!std::filesystem::is_directory(path2read))
+        if (!std::filesystem::is_directory(path2read))  // argv[1] isn't a directory
         {
             path2read = argv[2];
-            if (!std::filesystem::is_directory(path2read))
+            if (!std::filesystem::is_directory(path2read))  //argv[2] isn't a directory
             {
                 std::cout << "Argument passed \"" << path2read << "\" is not a valid directory.\n\n";
                 command_args();
                 return 2;
             }
             goal_time_s = argv[1];
-            if (!is_number(goal_time_s))
+            if (!is_number(goal_time_s))    // argv[2] is a directory, but argv[1] isn't a valid number
             {
                 std::cout << "Argument passed \"" << goal_time_s << "\" is not a valid number.\n\n";
                 command_args();
                 return 2;
             }
         }
-        else if (!is_number(goal_time_s))
+        else if (!is_number(goal_time_s))   // argv[1] is a directory, but argv[2] isn't a valid number
         {
             std::cout << "Argument passed \"" << goal_time_s << "\" is not a valid number.\n\n";
             command_args();
             return 2;
         }
     }
-    if (goal_time_s != "none")
+    if (goal_time_s != "none")  // we got a goal_time, let's use it
     {
         goal_time = std::stoi(goal_time_s);
-    }
-    else
-    {
-        goal_time = 604800000;
     }
 
     while (true)
     {
         clear_line();
-        start = std::chrono::steady_clock::now();
-        transferred = do_read(path2read);
 
-        elapsed_seconds = std::chrono::steady_clock::now() - start;
-        speed_s = std::to_string((unsigned __int64)((transferred * 10) / (pow(2, 20) * elapsed_seconds.count()))) + "MB/sec";
-        std::cout << "\"" << truncate(path2read, 22, true) << "\": read " << fsize_f(transferred) << " in " << seconds_f((unsigned __int64)elapsed_seconds.count()) << " at " << speed_s;
-        if ((elapsed_seconds.count()/10) < goal_time)
+        start = std::chrono::steady_clock::now(); // start the clock
+        transferred = do_read(path2read);   // do the reading
+        elapsed_seconds = std::chrono::steady_clock::now() - start; // figure out how long it took
+
+        speed_s = std::to_string((unsigned __int64)((transferred * 10) / (pow(2, 20) * elapsed_seconds.count()))) + "MB/sec"; // calculate MB/sec of the transfer
+        std::cout << "\"" << truncate(path2read, 22, true) << "\": read " << fsize_f(transferred) << " in " \
+            << seconds_f((unsigned __int64)elapsed_seconds.count()) << " at " << speed_s;
+
+        if (goal_time_s != "none" && (elapsed_seconds.count()/10) < goal_time))     // we got a goal_time, let's use it
         {
             std::cout << ".\nData read in under " << goal_time_s << ". Quitting.\n";
             return 1;
         }
         std::cout << ". Press any key to quit.";
-        if (input_wait_for(5))
+        if (input_wait_for(5))  // they hit a key, time to go
         {
             return 1;
         }
