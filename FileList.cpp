@@ -188,59 +188,56 @@ unsigned __int64 do_read(std::string path)      // the big read function
 {
     std::ifstream file2read;
     std::chrono::steady_clock::time_point start, start_out;
-    std::chrono::duration<double, std::ratio<1, 10>> elapsed_seconds, elapsed_out;
+    std::chrono::duration<double, std::ratio<1, 10>> elapsed_seconds, elapsed_full;
     std::streamsize file_size = 0, block_size = (std::streamsize)BLOCK_SIZE;
-    std::string bandw_s, speed_s, filenum_s, duration_s;
+    std::string transferred_s, speed_s, filenum_s, duration_s;
     char* buffer_d = new char[(size_t)BLOCK_SIZE];
     unsigned __int64 number_of_files = 0, current_file = 0, total_size = 0, done_size = 0;
     size_t fieldWidth[5] = FIELD_WIDTH;
-    bool loop = true;
-    unsigned __int64 i, speed;
+    unsigned __int64 retries, speed;
 
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(path))   // iterate through the target directory
     {
-        if (!entry.is_directory())
+        if (!entry.is_directory())  // we only count files
         {
-            number_of_files++;
-            total_size += entry.file_size();
+            number_of_files++;  // total files
+            total_size += entry.file_size();    // total bytes
         }
     }
-    start_out = std::chrono::steady_clock::now();
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
+    start_out = std::chrono::steady_clock::now();   // start the clock for the whole endevour
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(path))   // iterate through the target directory
     {
-        speed = 0;
-        i = 0;
-        loop = true;
-        if (!entry.is_directory())
+        retries = 0;
+        if (!entry.is_directory())  // we only read files
         {
-            current_file++;
-            file_size = entry.file_size();
-            file2read.open(entry.path().string(), std::ios_base::in | std::ios::binary);
-            if (!file2read.is_open())
+            current_file++;     // keep track of file number
+            file_size = entry.file_size();  // check our current file's size
+            file2read.open(entry.path().string(), std::ios_base::in | std::ios::binary);    // open file for read-only, binary data
+            if (!file2read.is_open())   // if the file didn't open
             {
-                file2read.clear();
+                file2read.clear();  // clear the error. since we skip doing anything else, we can now reuse safely
             }
-            else while (loop == true)
+            else while (true) // file is open. let's loop forever. (we break when needed)
             {                
-                bandw_s = fsize_f(file_size) + "/" + fsize_f(done_size) + "/" + fsize_f(total_size);
-                start = std::chrono::steady_clock::now();
-                for (std::streamsize bytes = 0; bytes < file_size; bytes += block_size)
+                transferred_s = fsize_f(file_size) + "/" + fsize_f(done_size) + "/" + fsize_f(total_size);  // keep track of data transferred
+                start = std::chrono::steady_clock::now();   // start the clock
+                for (std::streamsize bytes = 0; bytes < file_size; bytes += block_size) // don't go past the end of the file
                 {
-                    file2read.read(buffer_d, block_size);
+                    file2read.read(buffer_d, block_size);   // read a block
                 }
-                elapsed_seconds = std::chrono::steady_clock::now() - start;
-                elapsed_out = std::chrono::steady_clock::now() - start_out;
-                speed = (unsigned __int64)((file_size * 10) / (pow(2, 20) * elapsed_seconds.count()));
-                speed_s = std::to_string(speed) + "MB/sec";
-                filenum_s = std::to_string(current_file) + "/" + std::to_string(number_of_files);
-                duration_s = seconds_f((unsigned __int64)elapsed_out.count());
-                clear_line();
+                elapsed_seconds = std::chrono::steady_clock::now() - start; // time of current transfer
+                elapsed_full = std::chrono::steady_clock::now() - start_out;    // total time
+                speed = (unsigned __int64)((file_size * 10) / (pow(2, 20) * elapsed_seconds.count()));  // filesize/time = b/s
+                speed_s = std::to_string(speed) + "MB/sec";     // format bandwidth
+                filenum_s = std::to_string(current_file) + "/" + std::to_string(number_of_files);   // format files done and total files
+                duration_s = seconds_f((unsigned __int64)elapsed_full.count()); // format time spent
+                clear_line();   // ncurses is hard
                 std::cout << "[";
-                std::cout << std::setw(fieldWidth[0]) << std::left << truncate(entry.path().filename().string(), fieldWidth[0], true);
-                std::cout << std::setw(fieldWidth[1]) << std::right << truncate(bandw_s, fieldWidth[1]);
+                std::cout << std::setw(fieldWidth[0]) << std::left << truncate(entry.path().filename().string(), fieldWidth[0], true);  // setw lets us use colums
+                std::cout << std::setw(fieldWidth[1]) << std::right << truncate(transferred_s, fieldWidth[1]);
                 std::cout << std::setw(fieldWidth[2]) << std::right << truncate(speed_s, fieldWidth[2]);
                 std::cout << std::setw(fieldWidth[3]) << std::right << truncate(filenum_s, fieldWidth[3]);
-                switch (i)
+                switch (retries)    // depending on retries, add a character
                 {
                     case 0: std::cout << " "; break;
                     case 1: std::cout << "-"; break;
@@ -250,23 +247,23 @@ unsigned __int64 do_read(std::string path)      // the big read function
                 }
                 std::cout << std::setw(fieldWidth[4]) << std::right << duration_s;
                 std::cout << "]";
-                if ((++i >= 5) || (speed >= TARGET_SPEED) || (file_size < 10000))
-                {
+                if ((++retries >= 5) || (speed >= TARGET_SPEED) || (file_size < 10000))
+                {   // we don't retry more than five times, reach target_speed or on small files. small files can be cached, but the open/close time makes the bandwidth numbers not match
                     break;
                 }
-                else
+                else    // we need to retry
                 {
-                    file2read.clear();
-                    file2read.seekg(0, std::ios_base::beg);
+                    file2read.clear();  // clear the buffer's flags
+                    file2read.seekg(0, std::ios_base::beg);     // seek to zero
                 }
             }
-            file2read.close();
-            done_size += file_size;
+            file2read.close(); // done reading the file. close it
+            done_size += file_size;     // keep track of total data transferred.
         }
     }
-    std::cout << "\n";
+    std::cout << "\n";  // we are done reading, so we don't need to ncurses anymore.
 
-    return total_size;
+    return done_size;   // return the data actually read
 }
 
 bool input_wait_for(unsigned __int64 timeout)       // wait for user input for timeout seconds
