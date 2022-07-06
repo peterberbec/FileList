@@ -1,27 +1,27 @@
 #undef _DEBUG
 
-#include <iostream>
-#include <string>
-#include <filesystem>
-#include <fstream>
-#include <chrono>
-#include <iomanip>
-#include <sstream>
-#include <conio.h>
-#define BLOCK_SIZE (pow(2, 25))
-#define TARGET_SPEED 350
-#define FIELD_WIDTH {36,20,12,14,7} /* filename, size, speed, filenumber, time*/
+#include <iostream>                 // everybody need std::cout
+#include <string>                   // for string stuff
+#include <filesystem>               // for filesystem
+#include <fstream>                  // for std::basic_ifstream
+#include <chrono>                   // for time stuff
+#include <sstream>                  // for std::stringstream
+#include <conio.h>                  // for _kbhit
+
+#define BLOCK_SIZE (pow(2, 25))     // 32MB works well on my system. negligable speed gains for hight
+#define TARGET_SPEED 350            // 350MB/sec means it hit the cache
+#define FIELD_WIDTH {36,20,12,14,7} // filename, size, speed, filenumber, time - used for std::setw formatting
 
 void command_args();
 bool is_number(const std::string&);
 std::string truncate(std::string, size_t, bool);
-void clear_line(int);
-std::string seconds_f(int);
+void clear_line(unsigned __int64);
+std::string seconds_f(unsigned __int64);
 std::string fsize_f(std::streamsize);
 unsigned __int64 do_read(std::string);
-bool input_wait_for(int);
+bool input_wait_for(unsigned __int64);
 
-void command_args()
+void command_args()                 // Help text
 {
     std::cout << "FileList.exe\n";
     std::cout << "\n";
@@ -32,7 +32,7 @@ void command_args()
     std::cout << "to load PrimoCache with FF14, as it was doing a bad job of loading. It grew from there\n";
     std::cout << "and now can run on any directory. I've integrated it into my Windows \"Send-To\" menu.\n";
     std::cout << "\n";
-    std::cout << "One argument is required - the directory to be scanned. Put it in Quotes to make\n"
+    std::cout << "One argument is required - the directory to be scanned. Put it in Quotes to make\n";
     std::cout << "life easier - long - filenames and spaces in directroy names.\n";
     std::cout << "One argument is optional - the directory goal time to quit after, in seconds.\n";
     std::cout << "Argument order is not important.\n";
@@ -47,15 +47,15 @@ void command_args()
     input_wait_for(15);
 }
 
-bool is_number(const std::string& s)
+bool is_number(const std::string& s)    // Test to see if s is a number
 {
     return !s.empty() && std::find_if(s.begin(),
         s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
 }
 
-std::string truncate(std::string str, size_t width, bool dots=false)
+std::string truncate(std::string str, size_t width, bool dots=false)        // truncate a string if longer than width characters
 {
-    if(dots)
+    if(dots)    // add an elipsis if asked to
     {
         if ((str.length()+3) >= width)
         {
@@ -69,19 +69,20 @@ std::string truncate(std::string str, size_t width, bool dots=false)
     return str;
 }
 
-void clear_line(int number = 0)
+void clear_line(unsigned __int64 number = 0)        // curses is hard. hax are easy
 {
     char to_print[3] = { '\b', ' ', '\b' };
     size_t fieldWidth[5] = FIELD_WIDTH;
-    size_t width_f = fieldWidth[0] + fieldWidth[1] + fieldWidth[2] + fieldWidth[3] + fieldWidth[4] + 3;
-    if (number != 0)
+    unsigned __int64 width_f = (unsigned __int64)fieldWidth[0] + (unsigned __int64)fieldWidth[1] \
+        + (unsigned __int64)fieldWidth[2] + (unsigned __int64)fieldWidth[3] + (unsigned __int64)fieldWidth[4] + 3;      // calculate the length of the line
+    if (number != 0)        // if we get an argument, clear that number of spaces
     {
         width_f = size_t(number);
     }
 
-    for (unsigned int j = 0; j < 3; j++)
+    for (unsigned __int64 j = 0; j < 3; j++)    // loop through backspace, space and backspace
     {
-        for (unsigned int i = 0; i < width_f; i++)
+        for (unsigned __int64 i = 0; i < width_f; i++)
         {
             std::cout << to_print[j];
         }
@@ -89,33 +90,60 @@ void clear_line(int number = 0)
     return;
 }
 
-std::string seconds_f(int num_seconds)
+std::string seconds_f(unsigned __int64 num_seconds)     // format a number of seconds into 3d12h5m17s
 {
     std::string ret_string = "";
+    unsigned __int64 temp = 0;
 
-    if (num_seconds < 600)
+    if (num_seconds < 600)      // if we are given less than 60 seconds, use a decimal place
     {
-        std::stringstream ret;
-        ret << std::fixed << std::setprecision(2) << (num_seconds/10.0);
-        ret_string = ret.str() + "s";
+        temp = (unsigned __int64)(num_seconds / 10);
+        std::stringstream temp_ss;
+        temp_ss << std::fixed << std::setprecision(2) << (temp);
+        ret_string = temp_ss.str() + "s";
         return ret_string;
     }
-    if (num_seconds > 864000)
+    if (num_seconds > 864000)   // days
     {
-        ret_string = std::to_string((int)(num_seconds / 864000)) + "d";
-        num_seconds -= (int)((num_seconds / 86400) * 864000);
+        temp = (unsigned __int64)(num_seconds / 864000);
+        ret_string = std::to_string(temp) + "d";
+        num_seconds -= temp * 864000;
     }
-    if (num_seconds > 36000)
+    if (num_seconds > 36000)    // hours
     {
-        ret_string = ret_string + std::to_string((int)(num_seconds / 36000)) + "h";
-        num_seconds -= (int)((num_seconds / 3600) * 3600);
+        temp = (unsigned __int64)(num_seconds / 36000);
+        if (temp < 10 && ret_string != "")      // if less than 10 hours, and we are using days, add a leading 0
+        {
+            ret_string = "0" + ret_string + std::to_string(temp) + "h";
+        }
+        else
+        {
+            ret_string = ret_string + std::to_string(temp) + "h";
+        }
+        num_seconds -= temp * 3600;
     }
-    if (num_seconds > 600)
+    if (num_seconds > 600)      // minutes
     {
-        ret_string = ret_string + std::to_string((int)(num_seconds / 600)) + "m";
-        num_seconds -= (int)((num_seconds / 60) * 60);
+        temp = (unsigned __int64)(num_seconds / 600);
+        if (temp < 10 && ret_string != "")      // if less than 10 minutes, and we are using days, add a leading 0
+        {
+            ret_string = "0" + ret_string + std::to_string(temp) + "m";
+        }
+        else
+        {
+            ret_string = ret_string + std::to_string(temp) + "m";
+        }
+        num_seconds -= temp * 600;
     }
-    ret_string = ret_string + std::to_string((int)(num_seconds/10)) + "s";
+    temp = (unsigned __int64)(num_seconds / 10);
+    if (temp < 10 && ret_string != "")  // if less than 10 seconds, and we are using days, add a leading 0
+    {
+        ret_string = "0" + ret_string + std::to_string(temp) + "s";
+    }
+    else
+    {
+        ret_string = ret_string + std::to_string(temp) + "s";
+    }
 
     return ret_string;
 }
@@ -167,7 +195,7 @@ unsigned __int64 do_read(std::string path)
     unsigned __int64 number_of_files = 0, current_file = 0, total_size = 0, done_size = 0;
     size_t fieldWidth[5] = FIELD_WIDTH;
     bool loop = true;
-    int i, speed;
+    unsigned __int64 i, speed;
 
     for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
     {
@@ -202,10 +230,10 @@ unsigned __int64 do_read(std::string path)
                 }
                 elapsed_seconds = std::chrono::steady_clock::now() - start;
                 elapsed_out = std::chrono::steady_clock::now() - start_out;
-                speed = (int)((file_size * 10) / (pow(2, 20) * elapsed_seconds.count()));
+                speed = (unsigned __int64)((file_size * 10) / (pow(2, 20) * elapsed_seconds.count()));
                 speed_s = std::to_string(speed) + "MB/sec";
                 filenum_s = std::to_string(current_file) + "/" + std::to_string(number_of_files);
-                duration_s = seconds_f((int)elapsed_out.count());
+                duration_s = seconds_f((unsigned __int64)elapsed_out.count());
                 clear_line();
                 std::cout << "[";
                 std::cout << std::setw(fieldWidth[0]) << std::left << truncate(entry.path().filename().string(), fieldWidth[0], true);
@@ -241,7 +269,7 @@ unsigned __int64 do_read(std::string path)
     return total_size;
 }
 
-bool input_wait_for(int timeout)
+bool input_wait_for(unsigned __int64 timeout)
 {
     std::time_t start = std::time(0);
 
@@ -327,8 +355,8 @@ int main(int argc, char** argv)
         transferred = do_read(path2read);
 
         elapsed_seconds = std::chrono::steady_clock::now() - start;
-        speed_s = std::to_string((int)((transferred * 10) / (pow(2, 20) * elapsed_seconds.count()))) + "MB/sec";
-        std::cout << "\"" << truncate(path2read, 22, true) << "\": read " << fsize_f(transferred) << " in " << seconds_f((int)elapsed_seconds.count()) << " at " << speed_s;
+        speed_s = std::to_string((unsigned __int64)((transferred * 10) / (pow(2, 20) * elapsed_seconds.count()))) + "MB/sec";
+        std::cout << "\"" << truncate(path2read, 22, true) << "\": read " << fsize_f(transferred) << " in " << seconds_f((unsigned __int64)elapsed_seconds.count()) << " at " << speed_s;
         if ((elapsed_seconds.count()/10) < goal_time)
         {
             std::cout << ".\nData read in under " << goal_time_s << ". Quitting.\n";
