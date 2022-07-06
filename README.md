@@ -23,11 +23,15 @@ Argument order is not important.
 
 Example A:
 
+```
 C:\> filelist.exe "C:\Directory"
+```
 
 Example B:
 
+```
 C:\> filelist.exe 64 "C:\Directory"
+```
 
 Designed to run in Windows 64-bit. Compiles under Visual Studio 2022. Written
 in C++, as vanilla as I can make it. Probably easily portable to Linux and I 
