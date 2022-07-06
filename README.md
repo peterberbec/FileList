@@ -24,13 +24,13 @@ Argument order is not important.
 Example A:
 
 ```
-C:\> filelist.exe "C:\Directory"
+C:\> filelist.exe C:\Directory
 ```
 
 Example B:
 
 ```
-C:\> filelist.exe 64 "C:\Directory"
+C:\> filelist.exe 64 "D:\Directory\With Spaces"
 ```
 
 Designed to run in Windows 64-bit. Compiles under Visual Studio 2022. Written
