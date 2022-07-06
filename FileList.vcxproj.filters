@@ -30,9 +30,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="FileList.png">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="filelist.ico">
       <Filter>Resource Files</Filter>
     </Image>

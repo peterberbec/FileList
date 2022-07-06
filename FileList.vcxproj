@@ -139,7 +139,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="filelist.ico" />
-    <Image Include="FileList.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
