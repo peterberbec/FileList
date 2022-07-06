@@ -356,7 +356,7 @@ int main(int argc, char** argv)
         std::cout << "\"" << truncate(path2read, 22, true) << "\": read " << fsize_f(transferred) << " in " \
             << seconds_f((unsigned __int64)elapsed_seconds.count()) << " at " << speed_s;
 
-        if (goal_time_s != "none" && (elapsed_seconds.count()/10) < goal_time))     // we got a goal_time, let's use it
+        if (goal_time_s != "none" && ((elapsed_seconds.count()/10) < goal_time))     // we got a goal_time, let's use it
         {
             std::cout << ".\nData read in under " << goal_time_s << ". Quitting.\n";
             return 1;
