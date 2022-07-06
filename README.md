@@ -17,6 +17,7 @@ Windows "Send-To" menu, so you can run it from File Explorer.
 
 One argument is required - the directory to be scanned. Put it in Quotes to make
 life easier - long-filenames and spaces in directroy names.
+
 One argument is optional - the directory goal time to quit after, in seconds.
 Argument order is not important.
 
