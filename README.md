@@ -21,6 +21,19 @@ line arguments. There is a "fancy" rsync-style display. I didn't figure out
 ncurses, so I hacked together a line-clearing method. This integrates into the
 Windows "Send-To" menu, so you can run it from File Explorer.
 
+One argument is required - the directory to be scanned. Put it in Quotes to make
+life easier - long-filenames and spaces in directroy names.
+One argument is optional - the directory goal time to quit after, in seconds.
+Argument order is not important.
+
+Example A:
+
+C:\> filelist.exe "C:\Directory"
+
+Example B:
+
+C:\> filelist.exe 64 "C:\Directory"
+
 Final Fantasy 14 is copyright SquareEnix. No assets or interaction with the
 game are used or done by this program.
 PrimoCache is copyright Romex Software. No interaction with PrimoCache is done

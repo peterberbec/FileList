@@ -32,7 +32,8 @@ void command_args()
     std::cout << "to load PrimoCache with FF14, as it was doing a bad job of loading. It grew from there\n";
     std::cout << "and now can run on any directory. I've integrated it into my Windows \"Send-To\" menu.\n";
     std::cout << "\n";
-    std::cout << "One argument is required - the directory to be scanned.\n";
+    std::cout << "One argument is required - the directory to be scanned. Put it in Quotes to make\n"
+    std::cout << "life easier - long - filenames and spaces in directroy names.\n";
     std::cout << "One argument is optional - the directory goal time to quit after, in seconds.\n";
     std::cout << "Argument order is not important.\n";
     std::cout << "\n";
