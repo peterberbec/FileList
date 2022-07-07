@@ -3,7 +3,6 @@
 // Used by Fill_SSD_Cache.rc
 //
 #define IDI_ICON1                       102
-#define IDI_ICON2                       103
 
 // Next default values for new objects
 // 
