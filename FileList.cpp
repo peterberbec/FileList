@@ -133,6 +133,7 @@ void command_args()                 // Help text
     std::cout << "and now can run on any directory. I've integrated it into my Windows \"Send-To\" menu.\n";
     std::cout << "One argument is required - the directory to be scanned. Put it in Quotes to make\n";
     std::cout << "life easier - long - filenames and spaces in directroy names.\n";
+    std::cout << "Default behavior is to read directory until 350MB/second is reached.\n"
     std::cout << "There are two options for the second argument, which is not required.\n";
     std::cout << "Option A is goal time to quit after, in seconds.\n";
     std::cout << "Option B is \"/false\", which will ignore built-in speed goal and read forever.\n";
