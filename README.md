@@ -1,4 +1,4 @@
-FileList.exe
+Fill_SSD_Cache
 
 Reads the data of all files, recursively, in target directory. Loops forever,
 with a user prompt to quit after every loop, or until read is accomplished
@@ -28,19 +28,19 @@ Argument 2, choice 2 - /f or /forever. If this is set, never stop reading.
 Example A:
 
 ```
-C:\> filelist.exe C:\Directory
+C:\> Fill_SSD_Cache.exe C:\Directory
 ```
 
 Example B:
 
 ```
-C:\> filelist.exe 64 "D:\Directory\With Spaces"
+C:\> Fill_SSD_Cache.exe 64 "D:\Directory\With Spaces"
 ```
 
 Example C:
 
 ```
-C:\> filelist.exe "D:\Square Enix" /forever
+C:\> Fill_SSD_Cache.exe "D:\Square Enix" /forever
 ```
 
 Designed to run in Windows 64-bit. Compiles under Visual Studio 2022. Written

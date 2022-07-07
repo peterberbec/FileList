@@ -125,7 +125,7 @@ bool check_goal_time(long long time_elapsed, long long goal_time)     // let's c
 
 void command_args()                 // Help text
 {
-    std::cout << "FileList.exe\n";
+    std::cout << "Fill_SSD_Cache.exe\n";
     std::cout << "Reads all file, recursively, in target directory. Loops forever, with user prompt\n";
     std::cout << "to quit after every loop, or until read is accomplished in goal time.\n";
     std::cout << "The purpose of this program is to load an SSD cache from a hard drive. I wrote it\n";
