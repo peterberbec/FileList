@@ -18,8 +18,10 @@ Windows "Send-To" menu, so you can run it from File Explorer.
 One argument is required - the directory to be scanned. Put it in Quotes to make
 life easier - long-filenames and spaces in directroy names.
 
-One argument is optional - the directory goal time to quit after, in seconds.
-Argument order is not important.
+The second argument can be two things.
+
+Argument 2, choice 1 - goal time. If the read completes in this time, quit.
+Argument 2, choice 2 - /f or /false. If this is set, never stop reading.
 
 Example A:
 
@@ -31,6 +33,12 @@ Example B:
 
 ```
 C:\> filelist.exe 64 "D:\Directory\With Spaces"
+```
+
+Example C:
+
+```
+C:\> filelist.exe "D:\Square Enix" /false
 ```
 
 Designed to run in Windows 64-bit. Compiles under Visual Studio 2022. Written
