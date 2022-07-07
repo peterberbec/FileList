@@ -63,11 +63,11 @@ void do_output(std::string filename_s, std::string transferred_s, std::string
 	std::cout << std::setw(WIDTH_3) << std::right << truncate(		 filenum_s, WIDTH_3);	// files formatted
 	switch (retries)															// depending on retries, add a character
 	{
-		case 0: std::cout << " "; break;
-		case 1: std::cout << "-"; break;
-		case 2: std::cout << "="; break;
-		case 3: std::cout << "*"; break;
-		case 4: std::cout << "#"; break;
+		case 1:	std::cout << "-"; break;
+		case 2:	std::cout << "="; break;
+		case 3:	std::cout << "*"; break;
+		case 4:	std::cout << "#"; break;
+		default:	std::cout << " "; break;
 	}
 	std::cout << std::setw(WIDTH_4) << std::right << duration_s;
 	std::cout << "]";
@@ -77,7 +77,7 @@ void do_output(std::string filename_s, std::string transferred_s, std::string
  
 bool check_reread(int attempts, double elapsed_seconds, long long size)					// should we read the file again?
 {
-	if (attempts >= 5)															// have we already read it alot?
+	if (attempts > 5)															// have we already read it alot?
 	{
 		return false;
 	}
@@ -130,26 +130,27 @@ bool check_goal_time(long long time_elapsed, int goal_time)								// let's chec
 
 void command_args()																// Help text
 {
-	std::cout << "Fill_SSD_Cache.exe\n";
-	std::cout << "Reads all file, recursively, in target directory. Loops forever, with user prompt\n";
-	std::cout << "to quit after every loop, or until read is accomplished in goal time.\n";
-	std::cout << "The purpose of this program is to load an SSD cache from a hard drive. I wrote it\n";
-	std::cout << "to load PrimoCache with FF14, as it was doing a bad job of loading. It grew from there\n";
-	std::cout << "and now can run on any directory. I've integrated it into my Windows \"Send-To\" menu.\n";
-	std::cout << "One argument is required - the directory to be scanned. Put it in Quotes to make\n";
-	std::cout << "life easier - long - filenames and spaces in directroy names.\n";
-	std::cout << "Default behavior is to read directory until 350MB/second is reached.\n";
-	std::cout << "There are two options for the second argument, which is not required.\n";
-	std::cout << "Option A is goal time to quit after, in seconds.\n";
-	std::cout << "Option B is \"/forever\", \"/f\", \"-f\" or \"-forever\" which will ignore built-in speed\n";
-	std::cout << "goal and read forever.\n";
-	std::cout << "Argument order is not important.\n";
-	std::cout << "Example A -\n";
-	std::cout << "C:\\> filelist.exe \"C:\\Directory\"\n";
-	std::cout << "Example B -\n";
-	std::cout << "C:\\> filelist.exe 64 \"D:\\Directory\\With Spaces\"\n";
-	std::cout << "Example C -\n";
-	std::cout << "C:\\> filelist.exe \"E:\\Windows Games\" /forever\n";
+	std::cout <<	"## Fill_SSD_Cache.exe\n\n"
+				"Reads all file, recursively, in target directory. Loops forever, with user prompt\n"
+				"to quit after every loop, or until read is accomplished in goal time or SSD-speed.\n"
+				"Default behavior is to read directory until 350MB/second is reached.\n\n"
+				"The purpose of this program is to load an SSD cache from a hard drive. I wrote it\n"
+				"to load PrimoCache with FF14, as it was doing a bad job of loading. It grew from there\n"
+				"and now can run on any directory. I've integrated it into my Windows \"Send-To\" menu.\n\n"
+				"## Usage\n\n"
+				"One argument is required - the directory to be scanned. Put it in Quotes to make\n"
+				"life easier - long - filenames and spaces in directroy names.\n\n"
+				"There are two options for the second argument, which is not required.\n"
+				"Option A is goal time to quit after, in seconds.\n"
+				"Option B is \"/forever\", \"/f\", \"-f\" or \"-forever\" which will ignore built-in speed\n"
+				"goal and read forever.\n\n"
+				"Argument order is not important.\n\n"
+				"Example A -\n"
+				"\tC:\\> filelist.exe \"C:\\Directory\"\n"
+				"Example B -\n"
+				"\tC:\\> filelist.exe 64 \"D:\\Directory\\With Spaces\"\n"
+				"Example C -\n"
+				"\tC:\\> filelist.exe \"E:\\Windows Games\" /forever\n";
 	input_wait_for(15);
 }
 
@@ -508,7 +509,7 @@ int main(int argc, char** argv)
 
 	while (true)																// too many ways to end the loop for a simple conditional
 	{
-		clear_line();															//ncurses or gui sometime soon, please
+		clear_line();															// ncurses or gui sometime soon, please
 
 		start = std::chrono::steady_clock::now();									// start the clock
 		transferred = do_read(path2read);											// do the reading, return value is bytes transferred
