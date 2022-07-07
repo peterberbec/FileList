@@ -1,6 +1,5 @@
-#undef _DEBUG
-
 #include <iostream>																// everybody need std::cout
+#include <iomanip>																// for setw and precision
 #include <string>																// for string stuff
 #include <filesystem>															// for filesystem
 #include <fstream>																// for std::basic_ifstream
@@ -304,8 +303,8 @@ long long do_read(std::string path)												// the big read function
 	int i = 0, retries;
 	bool first = true;
 
-	for (const auto& entry : std::filesystem::recursive_directory_iterator(path))			// iterate through the target directory
-	{
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(path, std::filesystem::directory_options::skip_permission_denied))
+	{																		// iterate through the target directory
 		if (!entry.is_directory())												// don't count directories
 		{
 			number_of_files++;													// total files
@@ -313,8 +312,8 @@ long long do_read(std::string path)												// the big read function
 		}
 	}
 	start_full = std::chrono::steady_clock::now();									// start the clock for the whole endevour
-	for (const auto& entry : std::filesystem::recursive_directory_iterator(path))			// iterate through the target directory
-	{
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(path, std::filesystem::directory_options::skip_permission_denied))
+	{																		// iterate through the target directory
 		retries = 0;
 		if (!entry.is_directory())												// we only read files
 		{
