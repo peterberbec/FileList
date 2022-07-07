@@ -13,11 +13,11 @@
 #define INITIAL_MEM_REQUEST	268435456												// start with 256MB of memory, work our way down until it doesn't fail
 #define TO_SECONDS(A)		(A/10.0)												// convert tenths-of-a-second to seconds
 #define BANDWIDTH_CALC(A, B)	((long long)(A/TO_SECONDS(B)))							// convert A bytes in B milliseconds to bytes/second
-#define TARGET_BANDWIDTH		350000												// 350MB/sec means it hit the cache
+#define TARGET_BANDWIDTH		350000												// over 350MB/sec means it either read from an SSD, RAM or a RAID array - any one is fine by me
 #define WIDTH_0			36													// filename		used for std::setw formatting
 #define WIDTH_1			20													// size			used for std::setw formatting
-#define WIDTH_2			12													// bandwidth	used for std::setw formatting
-#define WIDTH_3			14													// file number	used for std::setw formatting
+#define WIDTH_2			12													// bandwidth		used for std::setw formatting
+#define WIDTH_3			14													// file number		used for std::setw formatting
 #define WIDTH_4			7													// time			used for std::setw formatting
 #define INPUT_TIMEOUT		5													// seconds to wait for user input
 
@@ -33,18 +33,17 @@ bool is_number(const std::string&);
 bool input_wait_for(long long);
 bool check_flag(std::string);
 
-auto rng_generator();
-
-size_t allocate_buffer(char*&, size_t);
-
 std::string truncate_dots(std::string, int);
 std::string truncate(std::string, int);
 std::string fsize_f(std::streamsize);
 std::string seconds_f(long long);
 
-unsigned long long pow_ll(unsigned long long, int);
-long double pow_ld(long long, int);
+size_t allocate_buffer(char*&, size_t);
+
 long long do_read(std::string);
+long double pow_ld(int, int);
+
+auto rng_generator();
 
 auto rng_generator()															// load up an RNG and seed it properly
 {
@@ -56,20 +55,9 @@ auto rng_generator()															// load up an RNG and seed it properly
 	return seededEngine;
 }
 
-long double pow_ld(long long base, int exponent)										// pow() didn't work. I needed bigger.
+long double pow_ld(int base, int exponent)											// pow() didn't work. I needed bigger.
 {
 	long double answer = (long double)base;
-	while (--exponent > 0)
-	{
-		answer *= (long double)base;
-	}
-
-	return answer;
-}
-
-unsigned long long pow_ll(unsigned long long base, int exponent)										// pow() didn't work. I needed bigger.
-{
-	unsigned long long answer = base;
 	while (--exponent > 0)
 	{
 		answer *= base;
@@ -312,7 +300,7 @@ std::string fsize_f(std::streamsize number)											// format number of bytes 
 			return number_fs.str() + suffix[power - 1];								// return it as a string with the proper suffix
 		}
 	}
-	return std::to_string(number) + suffix[0];								// don't know how we'd get here, but let's just return 12341B
+	return std::to_string(number) + suffix[0];										// don't know how we'd get here, but let's just return 12341B
 }
 
 size_t allocate_buffer(char*& buffer_d, size_t buffer_size)								// allocate memory
@@ -388,7 +376,8 @@ long long do_read(std::string path)												// the big read function
 
 	block_size = allocate_buffer(buffer_d, INITIAL_MEM_REQUEST);
 
-	for (const auto& entry : std::filesystem::recursive_directory_iterator(path, std::filesystem::directory_options::skip_permission_denied))
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(path, 
+		std::filesystem::directory_options::skip_permission_denied))
 	{																		// iterate through the target directory
 		if (!entry.is_directory())												// don't count directories
 		{
@@ -397,7 +386,8 @@ long long do_read(std::string path)												// the big read function
 		}
 	}
 	start_full = std::chrono::steady_clock::now();									// start the clock for the whole endevour
-	for (const auto& entry : std::filesystem::recursive_directory_iterator(path, std::filesystem::directory_options::skip_permission_denied))
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(path, 
+		std::filesystem::directory_options::skip_permission_denied))
 	{																		// iterate through the target directory
 		retries = 0;
 		if (!entry.is_directory())												// we only read files
@@ -509,7 +499,8 @@ void parse_args(int argc, char **argv, int &goal_time, std::string &path2read)		
 
 		if (!std::filesystem::is_directory(path2read))								// not a path
 		{
-			std::cout << "Argument passed \"" << path2read << "\" is NOT a valid directory.\n\n";
+			std::cout << "Argument passed \"" << path2read 
+				<< "\" is NOT a valid directory.\n\n";
 			command_args();													// help text
 			exit(2);															// goodbye
 		}
@@ -526,7 +517,8 @@ void parse_args(int argc, char **argv, int &goal_time, std::string &path2read)		
 
 			if (!std::filesystem::is_directory(path2read))							//argv[2] isn't a directory
 			{
-				std::cout << "Arguments passed \"" << path2read << "\" and \"" << temp << "\" are NOT valid directorys.\n\n";
+				std::cout << "Arguments passed \"" << path2read << "\" and \""
+					<< temp << "\" are NOT valid directorys.\n\n";
 				command_args();												// help text	
 				exit(2);														// goodbye
 			}
@@ -537,8 +529,10 @@ void parse_args(int argc, char **argv, int &goal_time, std::string &path2read)		
 					goal_time = -1;
 					return;
 				}
-				std::cout << "Argument passed \"" << path2read << "\" is was a valid directory, BUT\n";
-				std::cout << "Argument passed \"" << temp << "\" is NOT a valid number, / false or /f.\n\n";
+				std::cout << "Argument passed \"" << path2read 
+					<< "\" is was a valid directory, BUT\n";
+				std::cout << "Argument passed \"" << temp 
+					<< "\" is NOT a valid number, / false or /f.\n\n";
 				command_args();												// help text
 				exit(2);														// goodbye
 			}
@@ -558,8 +552,10 @@ void parse_args(int argc, char **argv, int &goal_time, std::string &path2read)		
 				goal_time = -1;
 				return;
 			}
-			std::cout << "Argument passed \"" << temp << "\" is NOT a valid number, /forever or /f, while\n";
-			std::cout << "Argument passed \"" << path2read << "\" is was a valid directory.\n\n";
+			std::cout << "Argument passed \"" << temp 
+				<< "\" is NOT a valid number, /forever or /f, while\n";
+			std::cout << "Argument passed \"" << path2read 
+				<< "\" is was a valid directory.\n\n";
 			command_args();													// help text
 			exit(2);															// goodbye
 		}
