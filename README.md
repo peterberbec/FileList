@@ -20,7 +20,7 @@ life easier - long-filenames and spaces in directroy names.
 
 The second argument can be two things.
 
-Argument 2, choice 1 - goal time. If the read completes in this time, quit.\n
+Argument 2, choice 1 - goal time. If the read completes in this time, quit.\
 Argument 2, choice 2 - /f or /false. If this is set, never stop reading.
 
 Example A:
