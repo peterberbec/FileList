@@ -7,6 +7,7 @@
 #include <sstream>																// for std::stringstream
 #include <conio.h>																// for _kbhit
 
+#include <algorithm>
 #include <stdexcept>
 #include <random>
 
@@ -35,6 +36,8 @@ bool is_number(const std::string&);
 bool input_wait_for(long long);
 bool check_flag(std::string);
 
+auto rng_generator();
+
 size_t allocate_buffer(char*&, size_t);
 
 std::string truncate_dots(std::string, int);
@@ -45,6 +48,16 @@ std::string seconds_f(long long);
 unsigned long long pow_ll(unsigned long long, int);
 long double pow_ld(long long, int);
 long long do_read(std::string);
+
+auto rng_generator()
+{
+	std::vector<unsigned int> random_data(512);
+	std::random_device source;
+	std::generate(begin(random_data), end(random_data), [&]() {return source(); });
+	std::seed_seq seeds(begin(random_data), end(random_data));
+	std::mt19937 seededEngine(seeds);
+	return seededEngine;
+}
 
 long double pow_ld(long long base, int exponent)										// pow() didn't work. I needed bigger.
 {
@@ -308,7 +321,7 @@ size_t allocate_buffer(char*& buffer_d, size_t buffer_size)
 {
 	size_t real_buffer;
 	std::exception_ptr p = NULL;
-		std::mt19937_64 rng;
+	auto prb_rng = rng_generator();
 	std::uniform_int_distribution<long> distch(0, 255);
 
 	for(real_buffer = buffer_size; real_buffer > 1; real_buffer--)
@@ -320,7 +333,7 @@ size_t allocate_buffer(char*& buffer_d, size_t buffer_size)
 			{
 				for (unsigned long long c = 0; c < real_buffer; c++)
 				{
-					buffer_d[c] = (char)(distch(rng));
+					buffer_d[c] = (char)(distch(prb_rng));
 				}
 			}
 			catch(...)
