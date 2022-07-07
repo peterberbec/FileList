@@ -32,7 +32,7 @@ Example C:
 ```
 C:\> Fill_SSD_Cache.exe "D:\Square Enix" /forever
 ```
-Designed to run in Windows 64-bit. Compiles under Visual Studio 2022. Written in C++, as vanilla as I can make it. Probably easily portable to Linux and I may try for my Plex box at some point, just to see if it works. Console application because GUIs scare me. I plan on making a Win32 version at some point, but it currently functions for my purposes quite will.\
+Designed to run in Windows 64-bit. Compiles under Visual Studio 2022. Written in C++, as vanilla as I can make it. Probably easily portable to Linux and I may try for my Plex box at some point, just to see if it works. Console application because GUIs scare me. I plan on making a Win32 version at some point, but it currently functions for my purposes quite will. Currently needs a hair over 256MB of memory to run, but will try to dynamically allocate less than that if it can't `new char[256MB]`.\
 \
 [Final Fantasy 14](https://www.finalfantasyxiv.com/) is copyright [SquareEnix](https://www.square-enix.com/). No assets or interaction with the game are used or done by this program.\
 [PrimoCache](https://www.romexsoftware.com/en-us/primo-cache/) is copyright [Romex Software](https://www.romexsoftware.com). No interaction with PrimoCache is done by this program.\
