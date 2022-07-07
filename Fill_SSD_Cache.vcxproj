@@ -142,7 +142,6 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="filelist.ico" />
     <Image Include="Fill_SSD_Cache.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

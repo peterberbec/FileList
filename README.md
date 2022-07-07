@@ -1,4 +1,4 @@
-Fill_SSD_Cache
+#Fill_SSD_Cache
 
 Reads the data of all files, recursively, in target directory. Loops forever,
 with a user prompt to quit after every loop, or until read is accomplished
@@ -17,13 +17,18 @@ Windows "Send-To" menu, so you can run it from File Explorer.
 
 Default behavior is to read directory until 350MB/second is reached.
 
+#Argument usage
+
+Argument order does not matter.
+
 One argument is required - the directory to be scanned. Put it in Quotes to make
 life easier - long-filenames and spaces in directroy names.
 
 The second argument can be two things.
 
-Argument 2, choice 1 - goal time. If the read completes in this many seconds, quit.\
-Argument 2, choice 2 - /f or /forever. If this is set, never stop reading.
+Argument 2, choice 1 - goal time, positive integer. If the read completes in this many seconds, quit.\
+Argument 2, choice 2 - { `/f`, `-f`, `/forever`, `-forever` }. If this is set, never 
+stop reading the directory.
 
 Example A:
 

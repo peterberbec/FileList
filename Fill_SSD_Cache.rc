@@ -52,9 +52,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON                    "filelist.ico"
-
-IDI_ICON2               ICON                    "Fill_SSD_Cache.ico"
+IDI_ICON1               ICON                    "Fill_SSD_Cache.ico"
 
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
