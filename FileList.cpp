@@ -11,7 +11,7 @@
 #define BLOCK_SIZE              (pow(2, 25))                            // 32MB works well on my system. negligable bandwidth gains for higher memory footprint
 #define to_seconds(A)           (A/10.0)                                // convert A tenths-of-a-second to seconds
 #define bandwidth_calc(A, B)    ((long long)(A/to_seconds(B)))          // convert A bytes in B milliseconds to bytes/second
-#define TARGET_BANDWIDTH        500000                                  // 500MB/sec means it hit the cache
+#define TARGET_BANDWIDTH        350000                                  // 500MB/sec means it hit the cache
 #define FIELD_W_0               36                                      // filename     used for std::setw formatting
 #define FIELD_W_1               20                                      // size         used for std::setw formatting
 #define FIELD_W_2               12                                      // bandwidth    used for std::setw formatting

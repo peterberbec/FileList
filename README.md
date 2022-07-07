@@ -15,12 +15,14 @@ line arguments. There is a "fancy" rsync-style display. I didn't figure out
 ncurses, so I hacked together a line-clearing method. This integrates into the
 Windows "Send-To" menu, so you can run it from File Explorer.
 
+Default behavior is to read directory until 350MB/second is reached.
+
 One argument is required - the directory to be scanned. Put it in Quotes to make
 life easier - long-filenames and spaces in directroy names.
 
 The second argument can be two things.
 
-Argument 2, choice 1 - goal time. If the read completes in this time, quit.\
+Argument 2, choice 1 - goal time. If the read completes in this many seconds, quit.\
 Argument 2, choice 2 - /f or /false. If this is set, never stop reading.
 
 Example A:
