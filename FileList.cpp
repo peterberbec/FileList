@@ -484,7 +484,7 @@ int main(int argc, char** argv)
         }
         else if (check_bandwidth(bandwidth, goal_time)) // we read in SSD speed, on average
         {
-            std::cout << ". Bandwidth goal reached.\n Press any key to continue.";    // great news. probably quit, right?
+            std::cout << ". Bandwidth goal reached. Press any key to continue.";    // great news. probably quit, right?
             if (!input_wait_for(20))  // they DIDN'T hit a key, time to go home
             {
                 return 1;
