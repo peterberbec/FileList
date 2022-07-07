@@ -607,7 +607,7 @@ int main(int argc, char** argv)
 
 		if (check_goal_time((long long)elapsed_seconds.count(), goal_time))				// we got a goal_time, let's use it
 		{
-			std::cout << "; withing goal time. Press any key to continue.";				// great news. probably quit, right?
+			std::cout << "; within goal time. Press any key to continue.";				// great news. probably quit, right?
 			if (!input_wait_for(INPUT_TIMEOUT))									// user DIDN'T hit a key, time to go home
 			{
 				ret_val=1;
