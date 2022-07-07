@@ -7,7 +7,10 @@
 #include <sstream>																// for std::stringstream
 #include <conio.h>																// for _kbhit
 
-#define BLOCK_SIZE			(pow(2, 25))											// 32MB works well on my system. negligable bandwidth gains for higher memory footprint
+#include <stdexcept>
+#include <random>
+
+#define INITIAL_MEM_REQUEST	268435456												// start with 256MB of memory, work our way down until it doesn't fail
 #define TO_SECONDS(A)		(A/10.0)												// convert tenths-of-a-second to seconds
 #define BANDWIDTH_CALC(A, B)	((long long)(A/TO_SECONDS(B)))							// convert A bytes in B milliseconds to bytes/second
 #define TARGET_BANDWIDTH		350000												// 350MB/sec means it hit the cache
@@ -32,11 +35,14 @@ bool is_number(const std::string&);
 bool input_wait_for(long long);
 bool check_flag(std::string);
 
+size_t allocate_buffer(char*&, size_t);
+
 std::string truncate_dots(std::string, int);
 std::string truncate(std::string, int);
 std::string fsize_f(std::streamsize);
 std::string seconds_f(long long);
 
+unsigned long long pow_ll(unsigned long long, int);
 long double pow_ld(long long, int);
 long long do_read(std::string);
 
@@ -46,6 +52,17 @@ long double pow_ld(long long base, int exponent)										// pow() didn't work. 
 	while (--exponent > 0)
 	{
 		answer *= (long double)base;
+	}
+
+	return answer;
+}
+
+unsigned long long pow_ll(unsigned long long base, int exponent)										// pow() didn't work. I needed bigger.
+{
+	unsigned long long answer = base;
+	while (--exponent > 0)
+	{
+		answer *= base;
 	}
 
 	return answer;
@@ -287,21 +304,74 @@ std::string fsize_f(std::streamsize number)											// format number of bytes 
 	return std::to_string(number) + suffix[power - 1];
 }
 
+size_t allocate_buffer(char*& buffer_d, size_t buffer_size)
+{
+	size_t real_buffer;
+	std::exception_ptr p = NULL;
+		std::mt19937_64 rng;
+	std::uniform_int_distribution<long> distch(0, 255);
+
+	for(real_buffer = buffer_size; real_buffer > 1; real_buffer--)
+	{
+		buffer_d = new (std::nothrow) char[real_buffer];
+		if (buffer_d)
+		{
+			try
+			{
+				for (unsigned long long c = 0; c < real_buffer; c++)
+				{
+					buffer_d[c] = (char)(distch(rng));
+				}
+			}
+			catch(...)
+			{
+				p = std::current_exception();
+				delete buffer_d;
+			}
+			if (p != NULL)
+			{
+				std::cout << "Memory exception thrown: ";
+
+				try
+				{
+					std::rethrow_exception(p);
+				}
+				catch (const std::exception& e)
+				{
+					std::cout <<  e.what() << "\n";
+					std::cout << "Please email peter@havetechwilltravel.nyc with this information\n";
+				}
+			}
+			break;
+		}
+		else
+		{
+			delete buffer_d;
+		}
+	}
+	delete buffer_d;															// get rid of all the random characters
+	buffer_d = new (std::nothrow) char[real_buffer];							// allocate memory for real
+	return real_buffer;															//
+}
+
 long long do_read(std::string path)												// the big read function
 {
 	using namespace std::chrono_literals;
-
+		
 	std::ifstream file2read;
 	std::chrono::steady_clock::time_point start, start_full, start_display;
 	std::chrono::duration<double, std::ratio<1, 10>> elapsed_full, 
 		elapsed_file, refresh_time = 0.1s;											// std::ratio<1, 10> means time is kept in tenths of a second
-	std::streamsize file_size = 0, block_size = (std::streamsize)BLOCK_SIZE;
+	std::streamsize file_size = 0;
 	std::string transferred_s, bandwidth_full_s, filenum_s, duration_s;
-	char* buffer_d = new char[(size_t)BLOCK_SIZE];
+	unsigned long long block_size;
 	long long number_of_files = 0, current_file = 0, total_size = 0, done_size = 0;
 	long long bandwidth_full;
 	int i = 0, retries;
 	bool first = true;
+	char* buffer_d;
+
+	block_size = allocate_buffer(buffer_d, INITIAL_MEM_REQUEST);
 
 	for (const auto& entry : std::filesystem::recursive_directory_iterator(path, std::filesystem::directory_options::skip_permission_denied))
 	{																		// iterate through the target directory
