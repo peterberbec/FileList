@@ -407,7 +407,7 @@ void parse_args(int argc, char **argv, long long &goal_time, std::string &path2r
                 command_args();
                 exit(2);
             }
-            if (!is_number(argv[1]))    // argv[2] is a directory, but argv[1] isn't a valid number
+            if (!is_number(temp))    // argv[2] is a directory, but argv[1] isn't a valid number
             {
                 if (temp == "/forever" || temp == "/f") // don't stop
                 {
@@ -422,6 +422,10 @@ void parse_args(int argc, char **argv, long long &goal_time, std::string &path2r
             else
             {
                 goal_time = std::stoi(temp);
+                if (goal_time < 1)
+                {
+                    goal_time = 0;
+                }
             }
         }
         else if (!is_number(temp))   // argv[1] is a directory, but argv[2] isn't a valid number
@@ -438,7 +442,8 @@ void parse_args(int argc, char **argv, long long &goal_time, std::string &path2r
         }
         else
         {
-            if (goal_time = std::stoi(temp) < 1)
+            goal_time = std::stoi(temp);
+            if (goal_time < 1)
             {
                 goal_time = 0;
             }
@@ -476,7 +481,7 @@ int main(int argc, char** argv)
 
         if (check_goal_time((long long)elapsed_seconds.count(), goal_time))     // we got a goal_time, let's use it
         {
-            std::cout << "; under goal of " << goal_time << " seconds. Press any key to continue.";    // great news. probably quit, right?
+            std::cout << "; withing goal time. Press any key to continue.";    // great news. probably quit, right?
             if (!input_wait_for(20))  // they DIDN'T hit a key, time to go home
             {
                 return 1;
@@ -484,7 +489,7 @@ int main(int argc, char** argv)
         }
         else if (check_bandwidth(bandwidth, goal_time)) // we read in SSD speed, on average
         {
-            std::cout << ". Bandwidth goal reached. Press any key to continue.";    // great news. probably quit, right?
+            std::cout << "; over goal speed. Press any key to continue.";    // great news. probably quit, right?
             if (!input_wait_for(20))  // they DIDN'T hit a key, time to go home
             {
                 return 1;
