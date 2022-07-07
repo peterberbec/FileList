@@ -55,44 +55,6 @@ PrimoCache is copyright Romex Software. No interaction with PrimoCache is done
 by this program.\
 Both are fine pieces of software I highly recommend.
 \
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
 ```
 don't sue me
 ```
