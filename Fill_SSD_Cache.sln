@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32616.157
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FileList", "FileList.vcxproj", "{6E8E3526-309A-4C82-A474-B17863E9BF41}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Fill_SSD_Cache", "Fill_SSD_Cache.vcxproj", "{6E8E3526-309A-4C82-A474-B17863E9BF41}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +26,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {3252BCAF-33DE-4C2F-87D5-D9264B741523}
+		SolutionGuid = {88DE90F9-72AF-4A3E-BB7F-034E627EAE9D}
 	EndGlobalSection
 EndGlobal

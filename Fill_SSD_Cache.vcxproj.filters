@@ -34,4 +34,12 @@
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="Fill_SSD_Cache.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="filelist.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
