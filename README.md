@@ -23,7 +23,7 @@ life easier - long-filenames and spaces in directroy names.
 The second argument can be two things.
 
 Argument 2, choice 1 - goal time. If the read completes in this many seconds, quit.\
-Argument 2, choice 2 - /f or /false. If this is set, never stop reading.
+Argument 2, choice 2 - /f or /forever. If this is set, never stop reading.
 
 Example A:
 
@@ -40,7 +40,7 @@ C:\> filelist.exe 64 "D:\Directory\With Spaces"
 Example C:
 
 ```
-C:\> filelist.exe "D:\Square Enix" /false
+C:\> filelist.exe "D:\Square Enix" /forever
 ```
 
 Designed to run in Windows 64-bit. Compiles under Visual Studio 2022. Written

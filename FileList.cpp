@@ -136,14 +136,14 @@ void command_args()                 // Help text
     std::cout << "Default behavior is to read directory until 350MB/second is reached.\n"
     std::cout << "There are two options for the second argument, which is not required.\n";
     std::cout << "Option A is goal time to quit after, in seconds.\n";
-    std::cout << "Option B is \"/false\", which will ignore built-in speed goal and read forever.\n";
+    std::cout << "Option B is \"/forever\" or \"/f\" which will ignore built-in speed goal and read forever.\n";
     std::cout << "Argument order is not important.\n";
     std::cout << "Example A -\n";
     std::cout << "C:\\> filelist.exe \"C:\\Directory\"\n";
     std::cout << "Example B -\n";
     std::cout << "C:\\> filelist.exe 64 \"D:\\Directory\\With Spaces\"\n";
     std::cout << "Example C -\n";
-    std::cout << "C:\\> filelist.exe \"E:\\Windows Games\" /false\n";
+    std::cout << "C:\\> filelist.exe \"E:\\Windows Games\" /forever\n";
     input_wait_for(15);
 }
 
@@ -409,7 +409,7 @@ void parse_args(int argc, char **argv, long long &goal_time, std::string &path2r
             }
             if (!is_number(argv[1]))    // argv[2] is a directory, but argv[1] isn't a valid number
             {
-                if (temp == "/false" || temp == "/f") // don't stop
+                if (temp == "/forever" || temp == "/f") // don't stop
                 {
                     goal_time = -1;
                     return;
@@ -426,12 +426,12 @@ void parse_args(int argc, char **argv, long long &goal_time, std::string &path2r
         }
         else if (!is_number(temp))   // argv[1] is a directory, but argv[2] isn't a valid number
         {
-            if (temp == "/false" || temp == "/f") // don't stop
+            if (temp == "/forever" || temp == "/f") // don't stop
             {
                 goal_time = -1;
                 return;
             }
-            std::cout << "Argument passed \"" << temp << "\" is NOT a valid number, /false or /f, while\n";
+            std::cout << "Argument passed \"" << temp << "\" is NOT a valid number, /forever or /f, while\n";
             std::cout << "Argument passed \"" << path2read << "\" is was a valid directory.\n\n";
             command_args();
             exit(2);
