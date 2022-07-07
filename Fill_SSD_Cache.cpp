@@ -6,10 +6,9 @@
 #include <chrono>																// for time stuff
 #include <sstream>																// for std::stringstream
 #include <conio.h>																// for _kbhit
-
-#include <algorithm>
-#include <stdexcept>
-#include <random>
+#include <stdexcept>															// for memory allocation handling
+#include <random>																// for random number generation
+#include <algorithm>															// for random number seeding
 
 #define INITIAL_MEM_REQUEST	268435456												// start with 256MB of memory, work our way down until it doesn't fail
 #define TO_SECONDS(A)		(A/10.0)												// convert tenths-of-a-second to seconds
@@ -22,9 +21,7 @@
 #define WIDTH_4			7													// time			used for std::setw formatting
 #define INPUT_TIMEOUT		5													// seconds to wait for user input
 
-																			// Function definitions
-
-void do_output(std::string, std::string, std::string, std::string, std::string, int);
+void do_output(std::string, std::string, std::string, std::string, std::string, int);		// Function definitions
 void parse_args(int, char**, int&, std::string&);
 void command_args();
 void clear_line();
@@ -49,7 +46,7 @@ unsigned long long pow_ll(unsigned long long, int);
 long double pow_ld(long long, int);
 long long do_read(std::string);
 
-auto rng_generator()
+auto rng_generator()															// load up an RNG and seed it properly
 {
 	std::vector<unsigned int> random_data(512);
 	std::random_device source;
@@ -290,81 +287,86 @@ std::string seconds_f(long long num_10th_seconds)										// format a number of
 
 std::string fsize_f(std::streamsize number)											// format number of bytes to B, KB, MB, GB, TB and PB
 {
-	std::stringstream number_fs;
+	std::stringstream number_fs;													// for using std::fixed and std::precision but not in std::cout
 	int precision = 0, power;
-	char suffix[6][3] = { "B", "KB", "MB", "GB", "TB", "PB" };
+	char suffix[6][3] = { "B ", "KB", "MB", "GB", "TB", "PB" };							// Suffixes for powers of 2^1 up to 2^50
 
-	for (power = 1; power < 7; power++)
+	for (power = 1; power < 7; power++)											// start at 1, go to 6
 	{
-		precision = 0;
-		if (number < pow_ld(2, 10*power))
+		precision = 0;															// default at no decimal places
+		if (number < pow_ld(2, 10*power))											// if our number is below 2^power
 		{
-			if (power > 2)
+			if (power > 2)														// if we are in quadruple digits
 			{
 				if ((number/pow_ld(2, 10 * (power-1))) < 10)							// between 1 and 9
 				{
-					precision = 2;
+					precision = 2;												// we want 1.23
 				}
 				else if ((number/pow_ld(2, 10 * (power-1))) < 100)					// between 10 and 99
 				{
-					precision = 1;
+					precision = 1;												// we want 12.3
 				}
 			}
-			number_fs << std::fixed << std::setprecision(precision) << (number / pow_ld(2, 10 * (power - 1)));
-			return number_fs.str() + suffix[power - 1];
+			number_fs << std::fixed << std::setprecision(precision) << 
+				(number / pow_ld(2, 10 * (power - 1)));								// put the output we want in a streamstream and then
+			return number_fs.str() + suffix[power - 1];								// return it as a string with the proper suffix
 		}
 	}
-	return std::to_string(number) + suffix[power - 1];
+	return std::to_string(number) + suffix[0];								// don't know how we'd get here, but let's just return 12341B
 }
 
-size_t allocate_buffer(char*& buffer_d, size_t buffer_size)
+size_t allocate_buffer(char*& buffer_d, size_t buffer_size)								// allocate memory
 {
 	size_t real_buffer;
 	std::exception_ptr p = NULL;
-	auto prb_rng = rng_generator();
-	std::uniform_int_distribution<long> distch(0, 255);
+	auto prb_rng = rng_generator();												// startup the RNG
+	std::uniform_int_distribution<long> distch(0, 255);								// make it evenly spit out chars
 
-	for(real_buffer = buffer_size; real_buffer > 1; real_buffer--)
+	for(real_buffer = buffer_size; real_buffer > 1; real_buffer = real_buffer/2)			// start at requested memory, half it every failure
 	{
-		buffer_d = new (std::nothrow) char[real_buffer];
-		if (buffer_d)
+		buffer_d = new (std::nothrow) char[real_buffer];								// allocate the memory, but don't puke
+		if (buffer_d)															// if we got memory
 		{
-			try
+			try																// Let's just see...
 			{
-				for (unsigned long long c = 0; c < real_buffer; c++)
+				for (unsigned long long c = 0; c < real_buffer; c++)					// loop through the entire buffer
 				{
-					buffer_d[c] = (char)(distch(prb_rng));
+					buffer_d[c] = (char)(distch(prb_rng));							// fill it with noise
 				}
 			}
-			catch(...)
+			catch(...)														// OHSHIT catch everything
 			{
-				p = std::current_exception();
-				delete buffer_d;
+				p = std::current_exception();										// grab the exception
 			}
-			if (p != NULL)
+			if (p != NULL)														// we got an exception
 			{
+				delete buffer_d;												// delete the invalid pointer
 				std::cout << "Memory exception thrown: ";
 
-				try
+				try															// Let's just see...
 				{
-					std::rethrow_exception(p);
+					std::rethrow_exception(p);									// Throw the same exception
 				}
 				catch (const std::exception& e)
 				{
-					std::cout <<  e.what() << "\n";
-					std::cout << "Please email peter@havetechwilltravel.nyc with this information\n";
+					std::cout <<  e.what() << "\n";								// WTF Happened?
+					std::cout << "Please email peter@havetechwilltravel.nyc "
+						"with this information\n";								// Please let me know what went on
 				}
 			}
-			break;
+			else																// Everything was hunky dory
+			{
+				break;														// let's get out of the for loop
+			}
 		}
-		else
+		else																	// we didn't get any memory
 		{
-			delete buffer_d;
+			delete buffer_d;													// delete the likely non-existant ram
 		}
-	}
+	}																		// I'ma do it again! hyuck, hyuck...
 	delete buffer_d;															// get rid of all the random characters
-	buffer_d = new (std::nothrow) char[real_buffer];							// allocate memory for real
-	return real_buffer;															//
+	buffer_d = new (std::nothrow) char[real_buffer];									// allocate memory for real
+	return real_buffer;															// return the size of the buffer
 }
 
 long long do_read(std::string path)												// the big read function
