@@ -49,9 +49,9 @@ may try for my Plex box at some point, just to see if it works. Console
 application because GUIs scare me. I plan on making a Win32 version at some
 point, but it currently functions for my purposes quite will.
 
-Final Fantasy 14 is copyright SquareEnix. No assets or interaction with the
+[Final Fantasy 14](https://www.finalfantasyxiv.com/) is copyright [SquareEnix](https://www.square-enix.com/). No assets or interaction with the
 game are used or done by this program.\
-PrimoCache is copyright Romex Software. No interaction with PrimoCache is done
+[PrimoCache](https://www.romexsoftware.com/en-us/primo-cache/) is copyright [Romex Software](https://www.romexsoftware.com). No interaction with PrimoCache is done
 by this program.\
 Both are fine pieces of software I highly recommend.
 
