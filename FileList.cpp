@@ -10,8 +10,7 @@
 
 #define BLOCK_SIZE              (pow(2, 25))                            // 32MB works well on my system. negligable bandwidth gains for higher memory footprint. lower is slower
 #define to_seconds(A)           (A/10.0)                                // convert A milliseconds to seconds
-#define bandwidth_calc(A, B)    ((unsigned __int64)(A/to_seconds(B)))   // convert A bytes in B milliseconds to bytes/second
-#define over_2toX(A, B)         ((double)A / (std::streamsize)pow(2, ((B)*10)))
+#define bandwidth_calc(A, B)    ((long long)(A/to_seconds(B)))   // convert A bytes in B milliseconds to bytes/second
 #define TARGET_BANDWIDTH        350000                                  // 350MB/sec means it hit the cache
 #define FIELD_W_0               36                                      // filename     used for std::setw formatting
 #define FIELD_W_1               20                                      // size         used for std::setw formatting
@@ -21,18 +20,43 @@
 
 void command_args();
 bool is_number(const std::string&);
-bool check_goal_time(unsigned __int64, unsigned __int64);
+bool check_goal_time(long long, long long);
 std::string truncate(std::string, size_t, bool);
 std::string truncate(std::string, size_t);
 void clear_line();
-std::string seconds_f(unsigned __int64);
+std::string seconds_f(long long);
 std::string fsize_f(std::streamsize);
-unsigned __int64 do_read(std::string);
-bool input_wait_for(unsigned __int64);
-bool check_reread(unsigned __int64, unsigned __int64, unsigned __int64);
-void do_output(std::string, std::string, std::string, std::string, std::string, unsigned __int64);
+long long do_read(std::string);
+bool input_wait_for(long long);
+bool check_reread(long long, long long, long long);
+void do_output(std::string, std::string, std::string, std::string, std::string, long long);
+long long pow_ll(long long, long long);
+long double pow_ld(long long, long long);
 
-void do_output(std::string filename_s, std::string transferred_s, std::string bandwidth_full_s, std::string filenum_s, std::string duration_s, unsigned __int64 retries)
+long long pow_ll(long long base, long long exponent)
+{
+    long long answer = base, exp = exponent;
+    while (--exp > 0)
+    {
+        answer *= base;
+    }
+    
+    return answer;
+}
+
+long double pow_ld(long long base, long long exponent)
+{
+    long double answer = (long double)base;
+    long long exp = exponent;
+    while (--exp > 0)
+    {
+        answer *= (long double)base;
+    }
+
+    return answer;
+}
+
+void do_output(std::string filename_s, std::string transferred_s, std::string bandwidth_full_s, std::string filenum_s, std::string duration_s, long long retries)
 {
     clear_line();   // ncurses is hard
     std::cout << "[";   // setw lets us use columns
@@ -54,7 +78,7 @@ void do_output(std::string filename_s, std::string transferred_s, std::string ba
     return;
 }
 
-bool check_reread(unsigned __int64 retries, unsigned __int64 bandwidth, unsigned __int64 file_size) // should we read the file again?
+bool check_reread(long long retries, long long bandwidth, long long file_size) // should we read the file again?
 {
     if (retries >= 5)       // have we already read it alot?
     {
@@ -74,10 +98,10 @@ bool check_reread(unsigned __int64 retries, unsigned __int64 bandwidth, unsigned
     }
 }
 
-bool check_goal_time(unsigned __int64 time_elapsed, unsigned __int64 goal_time)     // let's check if we reached our goal time
+bool check_goal_time(long long time_elapsed, long long goal_time)     // let's check if we reached our goal time
 {
-    time_elapsed = (unsigned __int64)to_seconds(time_elapsed);
-    if (goal_time == 0)        // was the goal zero?
+    time_elapsed = (long long)to_seconds(time_elapsed);
+    if (goal_time < 1)        // was the goal zero?
     {
         return false;
     }
@@ -151,11 +175,11 @@ std::string truncate(std::string str, size_t width)        // truncate a string 
 void clear_line()        // curses is hard. hax are easy
 {
     char to_print[3] = { '\b', ' ', '\b' };
-    unsigned __int64 width_f = FIELD_W_0 + FIELD_W_1 + FIELD_W_2 + FIELD_W_3 + FIELD_W_4 + 3;      // calculate the length of the line
+    long long width_f = FIELD_W_0 + FIELD_W_1 + FIELD_W_2 + FIELD_W_3 + FIELD_W_4 + 3;      // calculate the length of the line
 
-    for (unsigned __int64 j = 0; j < 3; j++)    // loop through backspace, space and backspace
+    for (long long j = 0; j < 3; j++)    // loop through backspace, space and backspace
     {
-        for (unsigned __int64 i = 0; i < width_f; i++)
+        for (long long i = 0; i < width_f; i++)
         {
             std::cout << to_print[j];
         }
@@ -163,11 +187,11 @@ void clear_line()        // curses is hard. hax are easy
     return;
 }
 
-std::string seconds_f(unsigned __int64 num_seconds)     // format a number of seconds into 3d12h5m17s
+std::string seconds_f(long long num_seconds)     // format a number of seconds into 3d12h5m17s
 {
     std::string ret_string = "";
     double seconds_temp_f = to_seconds(num_seconds);      // take care of pesky milliseconds 
-    unsigned __int64 seconds_running = (unsigned __int64)seconds_temp_f, temp;
+    long long seconds_running = (long long)seconds_temp_f, temp;
 
     if (seconds_temp_f < 60)      // if we are given less than 60 seconds, use a decimal place
     {
@@ -224,46 +248,46 @@ std::string seconds_f(unsigned __int64 num_seconds)     // format a number of se
 std::string fsize_f(std::streamsize number)     // format number of bytes to B, KB, MB, GB, TB and PB
 {
     std::stringstream number_fs;
-    unsigned __int64 precision = 1, power;
-    char suffix[6][3] = { "B ", "KB", "MB", "GB", "TB", "PB" };
+    long long precision = 0, power;
+    char suffix[6][3] = { "B", "KB", "MB", "GB", "TB", "PB" };
 
-    for (power = 6; power > 0; power--)
+    for (power = 1; power < 7; power++)
     {
-        std::cout << "n" << number << " po" << power;
-        if (number < over_2toX(number, power+1))
+        precision = 0;
+        if (number < pow_ll(2, 10*power))
         {
-            if (number < 10 * over_2toX(number, power+1)) // under 10M
+            if (power > 2)
             {
-                precision = 3;
+                if ((number/pow_ll(2, 10 * (power-1))) < 10) // between 1 and 9
+                {
+                    precision = 2;
+                }
+                else if ((number/pow_ll(2, 10 * (power-1))) < 100) // between 10 and 99
+                {
+                    precision = 1;
+                }
             }
-            if (number < 100 * over_2toX(number, power+1)) // under 100M
-            {
-                precision = 2;
-            }
-            else
-            {
-                precision = 1;
-            }
-            number_fs << std::fixed << std::setprecision(precision) << over_2toX(number, power) << suffix[power];
-            std::cout << " pr" << precision << " nf" << number_fs.str() << "\n";
-            return number_fs.str();
+            number_fs << std::fixed << std::setprecision(precision) << (number / pow_ld(2, 10 * (power - 1)));
+            return number_fs.str() + suffix[power - 1];
         }
     }
-    number_fs << std::fixed << std::setprecision(precision) << over_2toX(number, 0) << suffix[0];
-    return number_fs.str();
+    return std::to_string(number) + suffix[power - 1];
 }
 
-unsigned __int64 do_read(std::string path)      // the big read function
+long long do_read(std::string path)      // the big read function
 {
+    using namespace std::chrono_literals;
+
     std::ifstream file2read;
-    std::chrono::steady_clock::time_point start, start_full;
-    std::chrono::duration<double, std::ratio<1, 10>> elapsed_seconds, elapsed_full;     // std::ratio<1, 10> means time is kept in MILLI-seconds, so we need to /10 here and there
+    std::chrono::steady_clock::time_point start, start_full, start_display;
+    std::chrono::duration<double, std::ratio<1, 10>> elapsed_full, refresh_time = 0.1s;     // std::ratio<1, 10> means time is kept in tenths of a second
     std::streamsize file_size = 0, block_size = (std::streamsize)BLOCK_SIZE;
     std::string transferred_s, bandwidth_full_s, filenum_s, duration_s;
     char* buffer_d = new char[(size_t)BLOCK_SIZE];
-    unsigned __int64 number_of_files = 0, current_file = 0, total_size = 0, done_size = 0;
-    unsigned __int64 retries, bandwidth, bandwidth_full;
-    unsigned __int64 i = 0;
+    long long number_of_files = 0, current_file = 0, total_size = 0, done_size = 0;
+    long long retries, bandwidth_full;
+    long long i = 0;
+    bool first = true;
 
     for (const auto& entry : std::filesystem::recursive_directory_iterator(path))   // iterate through the target directory
     {
@@ -280,6 +304,7 @@ unsigned __int64 do_read(std::string path)      // the big read function
         if (!entry.is_directory())  // we only read files
         {
             current_file++;     // keep track of file number
+            filenum_s = std::to_string(current_file) + "/" + std::to_string(number_of_files);   // format files done and total files
             file_size = entry.file_size();  // check our current file's size
             file2read.open(entry.path().string(), std::ios_base::in | std::ios::binary);    // open file for read-only, binary data
             if (!file2read.is_open())   // if the file didn't open
@@ -288,36 +313,31 @@ unsigned __int64 do_read(std::string path)      // the big read function
             }
             else
             {
-//              done_size += file_size;     // keep track of total data transferred.
                 while (true)                // file is open. let's loop forever. (we break when needed)
                 {
+                    first = true;
                     start = std::chrono::steady_clock::now();   // start the clock
+                    start_display = start;
                     for (std::streamsize bytes = 0; bytes < file_size; bytes += block_size) // don't go past the end of the file
                     {
-                        done_size += block_size; // keep track of total data transferred.
                         file2read.read(buffer_d, block_size);   // read a block
-                        elapsed_full = (std::chrono::steady_clock::now() - start_full);    // total time
-                        bandwidth_full = bandwidth_calc(done_size, elapsed_full.count());  // filesize/time = b/s for the whole transfer
-                        bandwidth_full_s = fsize_f(bandwidth_full) + "/sec";
-                        transferred_s = fsize_f(done_size) + "/" + fsize_f(total_size);  // keep track of data transferred
-                        filenum_s = std::to_string(current_file) + "/" + std::to_string(number_of_files);   // format files done and total files
-                        duration_s = seconds_f((unsigned __int64)elapsed_full.count()); // format time spent
-                        do_output(entry.path().filename().string(), transferred_s, bandwidth_full_s, filenum_s, duration_s, retries);
-                        {       // DEBUG
-                            file2read.close();
-                            std::cout << "\n";
-                            return done_size;
+                        duration_s = seconds_f((long long)(elapsed_full = (std::chrono::steady_clock::now() - start_full)).count()); // format time spent
+                        transferred_s = fsize_f(done_size += file2read.gcount()) + "/" + fsize_f(total_size);  // keep track of data transferred
+                        bandwidth_full_s = fsize_f(bandwidth_full = bandwidth_calc(done_size, elapsed_full.count()));// filesize/time = b/s for the whole transfer
+                        if (first || ((std::chrono::steady_clock::now() - start_display) > refresh_time))      // if this is the first run-through, or we've waited refresh_time
+                        {
+                            first = false;      // not our first run anymore, right?
+                            start_display = std::chrono::steady_clock::now();       // start the clock again
+                            do_output(entry.path().filename().string(), transferred_s, bandwidth_full_s, filenum_s, duration_s, retries); // update screen
                         }
                     }
-                    elapsed_seconds = (std::chrono::steady_clock::now() - start); // time of current transfer
-                    bandwidth = bandwidth_calc(file_size, elapsed_seconds.count());  // filesize/time = b/s for the current file
-                    if (!check_reread(++retries, bandwidth, file_size))
+                    if (!check_reread(++retries, bandwidth_calc(file_size, (std::chrono::steady_clock::now() - start).count()), file_size))
                     {   // we don't retry more than five times, reach TARGET_BANDWIDTH or on small files. small files can be cached, but the open/close time makes the bandwidth numbers not match
                         break;
                     }
                     else    // we need to retry
                     {
-                        done_size -= file_size; //keep bandwidth sane.
+                        done_size -= file_size; // keep bandwidth sane, remove the bytes we just read.
                         file2read.clear();  // clear the buffer's flags
                         file2read.seekg(0, std::ios_base::beg);     // seek to zero
                     }
@@ -331,7 +351,7 @@ unsigned __int64 do_read(std::string path)      // the big read function
     return done_size;   // return the data actually read
 }
 
-bool input_wait_for(unsigned __int64 timeout)       // wait for user input for timeout seconds
+bool input_wait_for(long long timeout)       // wait for user input for timeout seconds
 {
     std::time_t start = std::time(0);
 
@@ -353,7 +373,7 @@ int main(int argc, char** argv)
     std::string path2read, bandwidth_s, goal_time_s = "none";
     std::chrono::steady_clock::time_point start;
     std::chrono::duration<double, std::ratio<1, 10>> elapsed_seconds;
-    unsigned __int64 transferred, bandwidth, goal_time = 0;
+    long long transferred, bandwidth, goal_time = 0;
 
     if (argc == 2)      // got a path, hopefully
     {
@@ -406,11 +426,6 @@ int main(int argc, char** argv)
     if (goal_time_s != "none")  // we got a goal_time, let's use it
     {
         goal_time = std::stoi(goal_time_s);
-        if (goal_time < 1) // that means loop forever, so forget about it
-        {
-            goal_time = 0;
-            goal_time_s = "none";
-        }
     }
 
     while (true) // too many ways to end the loop for a simple conditional. sorry, but break it is
@@ -422,18 +437,18 @@ int main(int argc, char** argv)
         elapsed_seconds = std::chrono::steady_clock::now() - start; // figure out how long it took
         bandwidth = bandwidth_calc(transferred, elapsed_seconds.count()); // calculate transfer speed
         bandwidth_s = fsize_f(bandwidth) + "/sec";  // pretty it up
-        std::cout << "\"" << truncate(path2read, 22, true) << "\": read " << fsize_f(transferred) << " " << transferred << " in " \
-            << seconds_f((unsigned __int64)elapsed_seconds.count()) << " at " << bandwidth_s << " " << bandwidth;   // Output statistics
+        std::cout << "\"" << truncate(path2read, 22, true) << "\": read " << fsize_f(transferred) << " " << " in "
+            << seconds_f((long long)elapsed_seconds.count()) << " at " << bandwidth_s;   // Output statistics
 
-        if (check_goal_time((unsigned __int64)elapsed_seconds.count(), goal_time))     // we got a goal_time, let's use it
+        if (check_goal_time((long long)elapsed_seconds.count(), goal_time))     // we got a goal_time, let's use it
         {
-            std::cout << "; under goal of " << goal_time_s << goal_time << " seconds. Quitting.\n";
+            std::cout << "; under goal of " << goal_time_s << " seconds. Quitting.\n";
             return 1;
         }
         else if (bandwidth > TARGET_BANDWIDTH) // we read in SSD speed, on average
         {
             std::cout << ". Bandwidth goal reached.\n Press any key to continue.";    // great news. probably quit, right?
-            if (!input_wait_for(5))  // they DIDN'T hit a key, time to go home
+            if (!input_wait_for(20))  // they DIDN'T hit a key, time to go home
             {
                 return 1;
             }
@@ -446,7 +461,6 @@ int main(int argc, char** argv)
                 return 1;
             }
         }
-        return 7;
     }
     return 0;
 }
