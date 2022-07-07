@@ -24,6 +24,7 @@
     <ProjectGuid>{6e8e3526-309a-4c82-a474-b17863e9bf41}</ProjectGuid>
     <RootNamespace>FileList</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Fill_SSD_Cache</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -129,16 +130,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="FileList.cpp" />
+    <ClCompile Include="Fill_SSD_Cache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="FileList.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="filelist.ico" />
+    <ResourceCompile Include="Fill_SSD_Cache.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
