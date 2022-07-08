@@ -111,7 +111,7 @@ bool check_reread(int attempts, double elapsed_seconds, long long size)					// s
 
 bool check_bandwidth(long long bandwidth, int goal_time)								// let's check if we reached our bandwidth goal
 {	
-	if (goal_time < 0)															// go forever?
+	if (goal_time != 0)															// were we supposed to go forever (<0) or were we given a goal time (>0)?
 	{																		// goal_time==-1, false | goal_time==0, no goal_time given | goal_time>0 we have a goal
 		return false;
 	}
@@ -128,7 +128,7 @@ bool check_bandwidth(long long bandwidth, int goal_time)								// let's check i
 bool check_goal_time(long long time_elapsed, int goal_time)								// let's check if we reached our goal time
 {	
 	time_elapsed = (long long)TO_SECONDS(time_elapsed);
-	if (goal_time < 1)															// was the goal zero?
+	if (goal_time < 1)															// were we supposed to go forever (<0) or were we not given a goal time (==0)?
 	{																		// goal_time==-1, false | goal_time==0, no goal_time given | goal_time>0 we have a goal
 		return false;
 	}
