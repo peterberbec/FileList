@@ -13,7 +13,7 @@
 #define INITIAL_MEM_REQUEST	268435456												// start with 256MB of memory, work our way down until it doesn't fail
 #define TO_SECONDS(A)		(A/10.0)												// convert tenths-of-a-second to seconds
 #define BANDWIDTH_CALC(A, B)	((long long)(A/TO_SECONDS(B)))							// convert A bytes in B milliseconds to bytes/second
-#define TARGET_BANDWIDTH		350000												// over 350MB/sec means it either read from an SSD, RAM or a RAID array - any one is fine by me
+#define TARGET_BANDWIDTH		700000000												// over 700MB/sec means it either read from an SSD, RAM or a RAID array - any one is fine by me
 #define WIDTH_0			36													// filename		used for std::setw formatting
 #define WIDTH_1			20													// size			used for std::setw formatting
 #define WIDTH_2			12													// bandwidth		used for std::setw formatting
@@ -147,7 +147,7 @@ void command_args()																// Help text
 	std::cout <<	"## Fill_SSD_Cache.exe\n\n"
 				"Reads all file, recursively, in target directory. Loops forever, with user prompt\n"
 				"to quit after every loop, or until read is accomplished in goal time or SSD-speed.\n"
-				"Default behavior is to read directory until 350MB/second is reached.\n\n"
+				"Default behavior is to read directory until 700MB/second is reached.\n\n"
 				"The purpose of this program is to load an SSD cache from a hard drive. I wrote it\n"
 				"to load PrimoCache with FF14, as it was doing a bad job of loading. It grew from there\n"
 				"and now can run on any directory. I've integrated it into my Windows \"Send-To\" menu.\n\n"
@@ -597,8 +597,8 @@ int main(int argc, char** argv)
 		bandwidth_s = fsize_f(bandwidth = 
 			BANDWIDTH_CALC(transferred, elapsed_seconds.count())) + "/sec";				// calculate bandwidth
 
-		std::cout << "\"" << truncate_dots(path2read, 22) << "\": read " << 
-			fsize_f(transferred) << " " << " in " << 
+		std::cout << "\"" << truncate_dots(path2read, 22) << "\": read " <<
+			fsize_f(transferred) << " " << " in " <<
 			seconds_f((long long)elapsed_seconds.count()) << " at " << bandwidth_s;		// Output full-runthrough statistics
 
 		if (check_goal_time((long long)elapsed_seconds.count(), goal_time))				// we got a goal_time, let's use it

@@ -9,7 +9,7 @@ The purpose of this program is to load an SSD cache from a hard drive. I wrote i
 The program grew from there. Now it takes the `directory` to read & (`goal time` or `endless`-flag) as command line arguments. There is a "fancy" rsync-style display. I didn't figure out ncurses, so I hacked together a line-clearing method. This integrates into the Windows "Send-To" menu, so you can run it from File Explorer. 
 \
 \
-Default behavior is to read directory until 350MB/second is reached.
+Default behavior is to read directory until 700MB/second is reached.
 ### Usage ###
 Argument order does not matter.\
 \
